@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writeups | 0xTuNick</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="scanlines"></div>
+
+  <header class="site-header">
+    <div class="profile">
+      <img src="profile.png" alt="Foto de perfil" class="avatar" />
+      <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
+    </div>
+
+    <nav class="nav">
+      <a href="index.html">Inicio</a>
+      <a href="writeups.html">Writeups</a>
+      <a href="about.html">Sobre mí</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Buscador -->
+    <section class="search-box">
+      <input type="text" id="searchInput" placeholder="Buscar writeups..." />
+    </section>
+
+    <section id="writeups" class="card">
+      <h2>Writeups</h2>
+      <div id="posts">
+        <article class="post">
+          <h3><a href="./writeups/ctf-maquina-void.html">CTF: Máquina “void”</a></h3>
+          <p>Enumeración fallida, privesc por cap_setuid...</p>
+        </article>
+        <article class="post">
+          <h3><a href="./writeups/web-lfi-diario.html">Web: LFI sin happy path</a></h3>
+          <p>Cuando el LFI no te abre /etc/passwd...</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Enlaces -->
+    <section id="links" class="card">
+  <h2>Contactos</h2>
+  <ul class="links-row icons">
+    <li><a href="https://github.com/Odiaz-cyber/zer-beruz" aria-label="GitHub">
+      <img src="icons/github.png" alt="GitHub" />
+    </a></li>
+    <li><a href="https://x.com/TU-USER" aria-label="X">
+      <img src="icons/x.png" alt="X" />
+    </a></li>
+    <li><a href="zerberuz1@gmail.com" aria-label="Email">
+      <img src="icons/email.png" alt="Email" />
+    </a></li>
+  </ul>
+</section>
+ 
+  <footer class="site-footer">
+    <p>© 2025 zerberuz · hecho con él y café</p>
+  </footer>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const posts = document.querySelectorAll('#posts .post');
+    searchInput.addEventListener('keyup', function() {
+      const term = this.value.toLowerCase();
+      posts.forEach(post => {
+        const text = post.innerText.toLowerCase();
+        post.style.display = text.includes(term) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
