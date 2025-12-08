@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" href="icons/header.png" type="image/png" />
+  <title>ZeroVault | zerberuz</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="scanlines"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="profile">
+      <img src="profile.webp" alt="Foto de perfil" class="avatar" />
+      <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Inicio</a>
+      <a href="writeups.html">Writeups</a>
+      <a href="about.html">whoami</a>
+      <a href="zerovault.html" class="active">ZeroVault</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="container">
+    <section id="zerovault" class="card">
+      <h2>ZeroVault</h2>
+      <p>Repositorio de recursos: PDFs, imágenes y guías sobre ciberseguridad y hacking.</p>
+
+      <!-- Buscador -->
+      <input type="text" id="search" placeholder="Buscar recurso..." />
+
+      <!-- Lista de recursos -->
+      <ul id="resource-list">
+        <li><a href="recursos/Permisos_Linux.png" target="_blank">PNG: Permisos Linux</a></li>
+        <li><a href="recursos/Permisos_Linux2.png" target="_blank">PNG: Permisos Linux2</a></li>
+        <li><a href="recursos/Notacion_Octal_Permisos.png" target="_blank">PNG: Notacion Octal Permisos</a></li>
+        <li><a href="recursos/Estructura del directorio en el sistema.pdf" target="_blank">PDF: Estructura de Directorios SO Linux</a></li>
+        <li><a href="recursos/grep.pdf" target="_blank">PDF: Grep</a></li>
+        <li><a href="recursos/phishing.png" target="_blank">Imagen: Phishing</a></li>
+        <li><a href="recursos/sql-injection.pdf" target="_blank">PDF: SQL Injection</a></li>
+        <li><a href="recursos/xss.png" target="_blank">Imagen: XSS</a></li>
+      </ul>
+
+      <!-- Controles de paginación -->
+      <div id="pagination"></div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>© 2025 zerberuz · hecho con él y café</p>
+  </footer>
+
+  <!-- Script buscador + paginación -->
+  <script>
+    const searchInput = document.getElementById('search');
+    const resourceList = document.getElementById('resource-list').getElementsByTagName('li');
+    const pagination = document.getElementById('pagination');
+    const itemsPerPage = 4;
+    let currentPage = 1;
+
+    function renderPagination(totalPages) {
+      pagination.innerHTML = '';
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        if (i === currentPage) btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          currentPage = i;
+          updateVisible();
+        });
+        pagination.appendChild(btn);
+      }
+    }
+
+    function updateVisible() {
+      const filter = searchInput.value.toLowerCase();
+      let filtered = [];
+      for (let i = 0; i < resourceList.length; i++) {
+        const text = resourceList[i].textContent.toLowerCase();
+        if (text.includes(filter)) {
+          filtered.push(resourceList[i]);
+        } else {
+          resourceList[i].style.display = 'none';
+        }
+      }
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      renderPagination(totalPages);
+
+      filtered.forEach((item, index) => {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        item.style.display = (index >= start && index < end) ? '' : 'none';
+      });
+    }
+
+    // inicial
+    updateVisible();
+
+    searchInput.addEventListener('keyup', () => {
+      currentPage = 1; // reset al buscar
+      updateVisible();
+    });
+  </script>
+</body>
+</html>
