@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writeups | 0xTuNick</title>
+  <meta name="description" content="Writeups, notas y repos de zerberuz." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="scanlines"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <h1 class="glitch" data-text="zerberuz">zerberuz</h1>
+      <p class="tagline">writeups · ctf · notas · fallos y aprendizajes</p>
+    </div>
+
+    <nav class="nav">
+      <a href="#writeups">Writeups</a>
+      <a href="#about">Sobre mí</a>
+      <a href="#links">Enlaces</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section id="about" class="card">
+      <h2>Sobre mí</h2>
+      <p>
+        Soy <strong>0xTuNick</strong>. Me gusta romper cosas para entenderlas, documentar fallos,
+        y dejar trazas de lo que aprendí. No todo sale bien; aquí está lo real.
+      </p>
+      <ul class="meta">
+        <li><span>Stack:</span> Linux, Python, Bash, WebSec, OSINT</li>
+        <li><span>Ciudad:</span> La Habana, Cuba</li>
+      </ul>
+    </section>
+
+    <section id="links" class="card">
+      <h2>Enlaces</h2>
+      <ul class="links">
+        <li><a href="https://github.com/TU-USER" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://github.com/TU-USER?tab=repositories" target="_blank" rel="noopener">Repos</a></li>
+        <li><a href="https://twitter.com/TU-USER" target="_blank" rel="noopener">Twitter/X</a></li>
+        <li><a href="https://www.linkedin.com/in/TU-USER" target="_blank" rel="noopener">LinkedIn</a></li>
+        <li><a href="mailto:tucorreo@example.com">Email</a></li>
+      </ul>
+    </section>
+
+    <section id="writeups" class="card">
+      <h2>Writeups</h2>
+
+      <article class="post">
+        <div class="post-head">
+          <h3><a href="./writeups/ctf-maquina-void.html">CTF: Máquina “void”</a></h3>
+          <time datetime="2025-11-10">10 Nov 2025</time>
+        </div>
+        <p class="post-desc">
+          Enumeración fallida, privesc por cap_setuid, y un RCE que no era. Lo que funcionó y lo que no.
+        </p>
+        <ul class="post-tags">
+          <li>#linux</li><li>#privesc</li><li>#ctf</li>
+        </ul>
+      </article>
+
+      <article class="post">
+        <div class="post-head">
+          <h3><a href="./writeups/web-lfi-diario.html">Web: LFI sin happy path</a></h3>
+          <time datetime="2025-10-28">28 Oct 2025</time>
+        </div>
+        <p class="post-desc">
+          Cuando el LFI no te abre /etc/passwd, pero te deja leer logs. Pivot a credenciales y session hijack.
+        </p>
+        <ul class="post-tags">
+          <li>#websec</li><li>#lfi</li><li>#logs</li>
+        </ul>
+      </article>
+
+      <article class="post">
+        <div class="post-head">
+          <h3><a href="./writeups/osint-huellas.html">OSINT: Huellas en metadatos</a></h3>
+          <time datetime="2025-09-12">12 Sep 2025</time>
+        </div>
+        <p class="post-desc">
+          Metadatos de imágenes y PDFs: lo que cuentan, cómo limpiarlos y cómo te delatan.
+        </p>
+        <ul class="post-tags">
+          <li>#osint</li><li>#privacy</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2025 0xTuNick · hecho con errores y café</p>
+    <p class="muted">Esta página es estática. Sin trackers. Sin promesas.</p>
+  </footer>
+</body>
+</html>

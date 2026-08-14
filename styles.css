@@ -20,6 +20,17 @@ html, body {
   margin: 0;
 }
 
+
+.machine-img {
+  display: block;
+  margin: 0 auto;              /* centra la imagen */
+  max-width: 70%;              /* ocupa un ancho medio */
+  border: 3px solid #00ff66;   /* contorno verde */
+  border-radius: 8px;          /* esquinas redondeadas */
+  box-shadow: 0 0 15px rgba(0,255,102,0.5); /* brillo verde */
+}
+
+
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
