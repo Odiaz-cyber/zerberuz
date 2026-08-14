@@ -43,6 +43,17 @@
     <section class="card">
       <img src="img/money_box.png" alt="Máquina MoneyBox" class="machine-img"/>
     </section>
+    <section class="card" style="text-align:center; margin-top:2rem;">
+  <!-- Botón volver atrás -->
+        <button class="nav-btn" onclick="history.back()">⬅ Volver</button>
+
+  <!-- Botón descargar PDF -->
+        <button class="nav-btn" onclick="window.print()">⬇ Descargar PDF</button>
+  <!-- Botón me gusta -->
+        <button class="nav-btn" onclick="likePost()">👍 Me gusta <span id="like-count">0</span></button>
+
+
+    </section>
 
     <!-- Metadatos -->
     <section class="card">
@@ -197,3 +208,57 @@ if(connect(S,sockaddr_in($p,inet_aton($i)))) {
 
       <p>Y finalmente ganamos acceso a la máquina como <strong>root</strong>.</p>
     </section>
+
+<script>
+  // --- Likes ---
+  let likes = parseInt(localStorage.getItem("likes") || "0");
+  document.getElementById("like-count").textContent = likes;
+
+  function likePost() {
+    likes++;
+    document.getElementById("like-count").textContent = likes;
+    localStorage.setItem("likes", likes);
+  }
+
+  // --- Comentarios ---
+  function addComment() {
+    const input = document.getElementById("comment-input");
+    const text = input.value.trim();
+    if(text !== "") {
+      const li = document.createElement("li");
+      li.textContent = text;
+      document.getElementById("comment-list").appendChild(li);
+
+      // guardar comentario en localStorage
+      let comments = JSON.parse(localStorage.getItem("comments") || "[]");
+      comments.push(text);
+      localStorage.setItem("comments", JSON.stringify(comments));
+
+      input.value = "";
+    }
+  }
+
+  // cargar comentarios guardados al abrir la página
+  window.onload = () => {
+    const savedComments = JSON.parse(localStorage.getItem("comments") || "[]");
+    savedComments.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = c;
+      document.getElementById("comment-list").appendChild(li);
+    });
+  }
+</script>
+
+
+<!-- Sección de comentarios -->
+<section class="card" style="margin-top:2rem;">
+  <h3>Comentarios</h3>
+  <textarea id="comment-input" 
+            placeholder="Escribe tu comentario..." 
+            class="comment-box"></textarea>
+  <br/>
+  <br/>
+ 
+  <button class="nav-btn" onclick="addComment()">Enviar comentario</button>
+  <ul id="comment-list" style="margin-top:1rem; text-align:left;"></ul>
+</section>
