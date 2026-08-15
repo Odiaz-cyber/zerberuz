@@ -31,6 +31,40 @@ html, body {
 }
 
 
+.nav-btn {
+  background: var(--bg);
+  color: #00ff66;              /* verde hacker */
+  border: 2px solid #00ff66;   /* contorno verde */
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(0,255,102,0.1);
+  box-shadow: 0 0 10px rgba(0,255,102,0.6);
+}
+
+
+.comment-box {
+  width: 100%;
+  height: 80px;
+  background-color: #000;   /* fondo negro */
+  color: #fff;              /* texto blanco */
+  border: 2px solid #00ff66;/* borde verde hacker */
+  border-radius: 6px;
+  padding: 0.5rem;
+  font-family: monospace;   /* estilo terminal */
+}
+.comment-box::placeholder {
+  color: #aaa;              /* placeholder gris claro */
+}
+
+
+
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 

