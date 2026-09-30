@@ -1,112 +1,263 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <link rel="icon" href="icons/header.png" type="image/png" />
+
   <title>ZeroVault | zerberuz</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="styles-v2.css" />
 </head>
+
 <body>
+
   <div class="noise"></div>
   <div class="scanlines"></div>
 
-  <!-- Header -->
   <header class="site-header">
     <div class="profile">
-      <img src="profile.webp" alt="Foto de perfil" class="avatar" />
-      <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
-    </div>
-    <nav class="nav">
-      <a href="index.html">Inicio</a>
-      <a href="writeups.html">Writeups</a>
-      <a href="about.html">whoami</a>
-      <a href="zerovault.html" class="active">ZeroVault</a>
-    </nav>
+      <img
+        src="profile.webp"
+        alt="Foto de perfil de zerberuz"
+        class="avatar"
+      />
+
+
+  <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
+</div>
+
+<nav class="nav" aria-label="Navegación principal">
+  <a href="index.html" data-text="Inicio">Inicio</a>
+
+  <a href="writeups.html" data-text="Writeups">Writeups</a>
+
+  <a href="about.html" data-text="whoami">whoami</a>
+
+  <a
+    href="zerovault.html"
+    class="active"
+    data-text="zerovault"
+    aria-current="page"
+  >
+    ZeroVault
+  </a>
+</nav>
+
+
   </header>
 
-  <!-- Contenido principal -->
   <main class="container">
-    <section id="zerovault" class="card">
-      <h2>ZeroVault</h2>
-      <p>Repositorio de recursos: PDFs, imágenes y guías sobre ciberseguridad y hacking.</p>
 
-      <!-- Buscador -->
-      <input type="text" id="search" placeholder="Buscar recurso..." />
 
-      <!-- Lista de recursos -->
-      <ul id="resource-list">
-        <li><a href="recursos/Permisos_Linux.png" target="_blank">PNG: Permisos Linux</a></li>
-        <li><a href="recursos/Permisos_Linux2.png" target="_blank">PNG: Permisos Linux2</a></li>
-        <li><a href="recursos/Notacion_Octal_Permisos.png" target="_blank">PNG: Notacion Octal Permisos</a></li>
-        <li><a href="recursos/Estructura del directorio en el sistema.pdf" target="_blank">PDF: Estructura de Directorios SO Linux</a></li>
-        <li><a href="recursos/grep.pdf" target="_blank">PDF: Grep</a></li>
-        <li><a href="recursos/phishing.png" target="_blank">Imagen: Phishing</a></li>
-        <li><a href="recursos/sql-injection.pdf" target="_blank">PDF: SQL Injection</a></li>
-        <li><a href="recursos/xss.png" target="_blank">Imagen: XSS</a></li>
-      </ul>
+<section class="hero">
+  <p class="eyebrow">resources · references · learning</p>
 
-      <!-- Controles de paginación -->
-      <div id="pagination"></div>
-    </section>
+  <h2>ZeroVault</h2>
+
+  <p>
+    Una colección personal de recursos, apuntes, imágenes y guías
+    relacionados con ciberseguridad, Linux y hacking.
+  </p>
+</section>
+
+<section id="zerovault" class="card">
+
+  <h2>Recursos</h2>
+
+  <p>
+    Material de referencia para consultar durante el aprendizaje
+    y las prácticas de seguridad.
+  </p>
+
+  <section class="search-box" aria-label="Buscar recursos">
+    <input
+      type="search"
+      id="search"
+      placeholder="Buscar recurso..."
+      aria-label="Buscar recurso"
+    />
+  </section>
+
+  <ul id="resource-list">
+
+    <li>
+      <a
+        href="recursos/Permisos_Linux.png"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        PNG: Permisos Linux
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/Permisos_Linux2.png"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        PNG: Permisos Linux 2
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/Notacion_Octal_Permisos.png"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        PNG: Notación octal de permisos
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/Estructura%20del%20directorio%20en%20el%20sistema.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        PDF: Estructura de directorios de Linux
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/grep.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        PDF: Grep
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/phishing.png"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Imagen: Phishing
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/sql-injection.pdf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        PDF: SQL Injection
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="recursos/xss.png"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Imagen: XSS
+      </a>
+    </li>
+
+  </ul>
+
+  <div id="pagination" aria-label="Paginación de recursos"></div>
+
+</section>
+
+
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
-    <p>© 2025 zerberuz · hecho con él y café</p>
+    <p>© 2025 zerberuz · Is hard but not impossible</p>
   </footer>
 
-  <!-- Script buscador + paginación -->
   <script>
-    const searchInput = document.getElementById('search');
-    const resourceList = document.getElementById('resource-list').getElementsByTagName('li');
-    const pagination = document.getElementById('pagination');
+    const searchInput = document.getElementById("search");
+    const resourceList = document.getElementById("resource-list");
+    const resources = Array.from(resourceList.querySelectorAll("li"));
+    const pagination = document.getElementById("pagination");
+
     const itemsPerPage = 4;
     let currentPage = 1;
 
+    function getFilteredResources() {
+      const filter = searchInput.value.toLowerCase().trim();
+
+      return resources.filter((item) => {
+        return item.textContent.toLowerCase().includes(filter);
+      });
+    }
+
     function renderPagination(totalPages) {
-      pagination.innerHTML = '';
+      pagination.innerHTML = "";
+
+      if (totalPages <= 1) {
+        return;
+      }
+
       for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        if (i === currentPage) btn.classList.add('active');
-        btn.addEventListener('click', () => {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.textContent = i;
+
+        if (i === currentPage) {
+          button.classList.add("active");
+        }
+
+        button.addEventListener("click", () => {
           currentPage = i;
           updateVisible();
         });
-        pagination.appendChild(btn);
+
+        pagination.appendChild(button);
       }
     }
 
     function updateVisible() {
-      const filter = searchInput.value.toLowerCase();
-      let filtered = [];
-      for (let i = 0; i < resourceList.length; i++) {
-        const text = resourceList[i].textContent.toLowerCase();
-        if (text.includes(filter)) {
-          filtered.push(resourceList[i]);
-        } else {
-          resourceList[i].style.display = 'none';
-        }
+      const filtered = getFilteredResources();
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+      if (currentPage > totalPages && totalPages > 0) {
+        currentPage = totalPages;
       }
 
-      const totalPages = Math.ceil(filtered.length / itemsPerPage);
-      renderPagination(totalPages);
+      if (filtered.length === 0) {
+        resources.forEach((item) => {
+          item.style.display = "none";
+        });
 
-      filtered.forEach((item, index) => {
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        item.style.display = (index >= start && index < end) ? '' : 'none';
+        pagination.innerHTML = "";
+
+        return;
+      }
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+
+      resources.forEach((item) => {
+        item.style.display = "none";
       });
+
+      filtered.slice(start, end).forEach((item) => {
+        item.style.display = "";
+      });
+
+      renderPagination(totalPages);
     }
 
-    // inicial
-    updateVisible();
-
-    searchInput.addEventListener('keyup', () => {
-      currentPage = 1; // reset al buscar
+    searchInput.addEventListener("input", () => {
+      currentPage = 1;
       updateVisible();
     });
+
+    updateVisible();
   </script>
+
 </body>
 </html>

@@ -1,60 +1,315 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel=icon href=icons/header.png type=image/png class="header-img">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="icons/header.png" type="image/png" />
+
   <title>Inicio | zerberuz</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="styles-v2.css" />
 </head>
+
 <body>
+
   <div class="noise"></div>
   <div class="scanlines"></div>
 
-  <header class="site-header">
-    <div class="profile">
-      <img src="profile.webp" alt="Foto de perfil" class="avatar" loading="lazy"/>
-      <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
-    </div>
+  <!-- Header -->
 
-    <nav class="nav">
-     <a href="index.html" data-text="Inicio">Inicio</a>
-     <a href="writeups.html" class="active" data-text="Writeups">Writeups</a>
-     <a href="about.html" data-text="whoami">whoami</a>
-     <a href="zerovault.html" data-text="zerovault">ZeroVault</a>
-    </nav>
+  <header class="site-header">
+
+
+<div class="profile">
+
+  <img
+    src="profile.webp"
+    alt="Foto de perfil de zerberuz"
+    class="avatar"
+  />
+
+  <h1
+    class="glitch small"
+    data-text="zerberuz"
+  >
+    zerberuz
+  </h1>
+
+</div>
+
+<nav class="nav" aria-label="Navegación principal">
+
+  <a
+    href="index.html"
+    class="active"
+    data-text="Inicio"
+    aria-current="page"
+  >
+    Inicio
+  </a>
+
+  <a
+    href="writeups.html"
+    data-text="Writeups"
+  >
+    Writeups
+  </a>
+
+  <a
+    href="about.html"
+    data-text="whoami"
+  >
+    whoami
+  </a>
+
+  <a
+    href="zerovault.html"
+    data-text="zerovault"
+  >
+    ZeroVault
+  </a>
+
+</nav>
+
+
   </header>
 
   <main class="container">
-    <section class="card">
-      <h2>Bienvenido</h2>
-      <p>Bienvenidos a mi blog, un espacio donde comparto información, writeups y todo tipo de conocimiento sobre el fascinante mundo del hacking.
-</p>
-    </section>
 
-    <!-- Enlaces (igual en todas las páginas) -->
-  <section id="links" class="card">
-  <h2>Contactos</h2>
-  <ul class="links-row icons">
-    <li><a href="https://github.com/Odiaz-cyber/zer-beruz" target="_blank">
-      <img src="icons/github.png" alt="GitHub" />
-    </a></li>
-    <li><a href="https://x.com/TU-USER" aria-label="X">
-      <img src="icons/x.png" alt="X" />
-    </a></li>
-    <li><a href="mailto:zerberuz1@gmail.com" target="_blank">
-      <img src="icons/email.png" alt="Email" />
-    </a></li>
-    <li><a href="https://discord.com/users/1323047606573596837" target="_blank">
-      <img src="icons/discord.png" alt="Discord" />
-    </a></li>
-  </ul>
+<!-- Hero -->
+<section class="hero">
+
+  <p class="eyebrow">
+    security · hacking · ctf
+  </p>
+
+  <h2>
+    Aprender. Romper. Entender.
+  </h2>
+
+  <p>
+    Soy zerberuz. Este es mi espacio para documentar lo que voy
+    aprendiendo sobre seguridad informática, hacking y CTFs.
+  </p>
+
 </section>
- 
 
+
+<!-- About -->
+<section class="card">
+
+  <h2>Sobre este sitio</h2>
+
+  <p>
+    Aquí documento máquinas, writeups, experimentos, herramientas,
+    notas y pequeños descubrimientos que voy encontrando durante
+    el camino.
+  </p>
+
+  <p>
+    La idea no es tener todas las respuestas, sino dejar un registro
+    de cómo llegué a ellas.
+  </p>
+
+</section>
+
+
+<!-- Writeups -->
+<section class="card">
+
+  <h2>Últimos writeups</h2>
+
+  <article class="post">
+
+    <div class="post-head">
+
+      <h3>
+        <a href="writeups/moneybox.html">
+          MoneyBox
+        </a>
+      </h3>
+
+      <span class="post-date">
+        2025
+      </span>
+
+    </div>
+
+    <p class="post-desc">
+      Enumeración, explotación y escalada de privilegios
+      en una máquina de laboratorio.
+    </p>
+
+    <ul class="post-tags">
+
+      <li>linux</li>
+      <li>enumeration</li>
+      <li>privilege-escalation</li>
+
+    </ul>
+
+  </article>
+
+
+  <article class="post">
+
+    <div class="post-head">
+
+      <h3>
+        <a href="writeups/cybersploit.html">
+          Cybersploit
+        </a>
+      </h3>
+
+      <span class="post-date">
+        2025
+      </span>
+
+    </div>
+
+    <p class="post-desc">
+      Reconocimiento, explotación y análisis de una máquina
+      enfocada en técnicas de seguridad ofensiva.
+    </p>
+
+    <ul class="post-tags">
+
+      <li>linux</li>
+      <li>web</li>
+      <li>ctf</li>
+
+    </ul>
+
+  </article>
+
+
+  <p>
+    <a href="writeups.html">
+      → Ver todos los writeups
+    </a>
+  </p>
+
+</section>
+
+
+<!-- What I use -->
+<section class="card">
+
+  <h2>En qué estoy trabajando</h2>
+
+  <p>
+    Actualmente estoy centrado en aprender más sobre
+    seguridad ofensiva, pentesting, CTFs y análisis de
+    vulnerabilidades.
+  </p>
+
+  <ul class="post-tags">
+
+    <li>Linux</li>
+    <li>Web Security</li>
+    <li>OSINT</li>
+    <li>CTF</li>
+    <li>Pentesting</li>
+
+  </ul>
+
+</section>
+
+
+<!-- ZeroVault -->
+<section id="zerovault" class="card">
+
+  <h2>ZeroVault</h2>
+
+  <p>
+    Una colección de recursos, herramientas y referencias
+    que considero útiles durante el aprendizaje.
+  </p>
+
+  <ul id="resource-list">
+
+    <li>
+      <a href="zerovault.html">
+        Explorar ZeroVault
+      </a>
+    </li>
+
+  </ul>
+
+</section>
+
+
+<!-- Contact -->
+<section id="links" class="card">
+
+  <h2>Contactos</h2>
+
+  <p>
+    Puedes encontrarme en:
+  </p>
+
+  <ul class="links-row icons">
+
+    <li>
+      <a
+        href="https://github.com/Odiaz-cyber/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+      >
+        <img
+          src="icons/github.png"
+          alt="GitHub"
+        />
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="mailto:zerberuz1@gmail.com"
+        aria-label="Email"
+      >
+        <img
+          src="icons/email.png"
+          alt="Email"
+        />
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="https://discord.com/users/1323047606573596837"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Discord"
+      >
+        <img
+          src="icons/discord.png"
+          alt="Discord"
+        />
+      </a>
+    </li>
+
+    <!-- Añadir X cuando tengas el usuario definitivo -->
+
+  </ul>
+
+</section>
+
+
+  </main>
 
   <footer class="site-footer">
-    <p>© 2025 zerberuz · Is hard but not impossible</p>
+
+
+<p>
+  © 2025 zerberuz · Is hard but not impossible
+</p>
+
+
   </footer>
+
 </body>
 </html>

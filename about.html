@@ -1,60 +1,176 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel=icon href=icons/header.png type=image/png class="header-img"> 
-  <title>Whoami | zerberuz</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="icons/header.png" type="image/png" />
+
+  <title>whoami | zerberuz</title>
+
+  <link rel="stylesheet" href="styles-v2.css" />
 </head>
+
 <body>
+
   <div class="noise"></div>
   <div class="scanlines"></div>
 
   <header class="site-header">
     <div class="profile">
-      <img src="profile.webp" alt="Foto de perfil" class="avatar" />
-      <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
-    </div>
+      <img
+        src="profile.webp"
+        alt="Foto de perfil de zerberuz"
+        class="avatar"
+      />
 
-    <nav class="nav">
-      <a href="index.html">Inicio</a>
-      <a href="writeups.html">Writeups</a>
-      <a href="about.html">whoami</a>
-      <a href="zerovault.html">ZeroVault</a>
-    </nav>
+
+  <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
+</div>
+
+<nav class="nav" aria-label="Navegación principal">
+  <a href="index.html" data-text="Inicio">Inicio</a>
+
+  <a href="writeups.html" data-text="Writeups">Writeups</a>
+
+  <a
+    href="about.html"
+    class="active"
+    data-text="whoami"
+    aria-current="page"
+  >
+    whoami
+  </a>
+
+  <a href="zerovault.html" data-text="zerovault">ZeroVault</a>
+</nav>
+
+
   </header>
 
   <main class="container">
-    <section id="about" class="card">
-      <h2>whoami</h2>
-      <p>
-        Soy <strong>zerberuz</strong>.Estudiante de Ciberseguridad y un gran apasionado del hacking
-      </p>
-    </section>
 
-    <!-- Enlaces -->
-    <section id="links" class="card">
-  <h2>Contactos</h2>
-  <ul class="links-row icons">
-    <li><a href="https://github.com/Odiaz-cyber/zer-beruz" aria-label="GitHub">
-      <img src="icons/github.png" alt="GitHub" />
-    </a></li>
-    <li><a href="https://x.com/TU-USER" aria-label="X">
-      <img src="icons/x.png" alt="X" />
-    </a></li>
-    <li><a href="zerberuz1@gmail.com" aria-label="Email">
-      <img src="icons/email.png" alt="Email" />
-    </a></li>
-    <li><a href="https://discord.com/users/1323047606573596837" target="_blank">
-      <img src="icons/discord.png" alt="Discord" />
-    </a></li>
-  </ul>
+
+<section class="hero">
+  <p class="eyebrow">identity · learning · security</p>
+
+  <h2>whoami</h2>
+
+  <p>
+    Un poco sobre quién está detrás de zerberuz y qué me llevó
+    a interesarme por la ciberseguridad.
+  </p>
 </section>
- 
+
+<section id="about" class="card">
+
+  <h2>Sobre mí</h2>
+
+<p>
+  Soy <strong>zerberuz</strong>, Ingeniero en Ciberseguridad y un apasionado
+  del hacking y la seguridad informática. Actualmente trabajo como especialista
+  en seguridad informática en Cuba, donde también participo en el desarrollo
+  de soluciones para empresas mediante la creación de planes de seguridad,
+  implementación y despliegue de distintos servicios, y desarrollo de agentes
+  de inteligencia artificial.
+</p>
+
+<p>
+  Fuera del ámbito profesional, también disfruto del desarrollo de videojuegos,
+  un hobby que me permite explorar otra forma de crear, experimentar y resolver
+  problemas.
+</p>
+
+<p>
+  Este sitio nace como un espacio personal para documentar todo aquello que voy
+  aprendiendo, experimentar con nuevas herramientas y conservar los conocimientos
+  que considero útiles. Pero también quiero que sea un punto de encuentro:
+  un lugar donde compartir, aprender de otras personas, ayudar cuando pueda y,
+  sobre todo, seguir aprendiendo junto a quienes están inmersos en este
+  maravilloso mundo de la ciberseguridad.
+</p>
+
+
+  <p>
+    Me interesa especialmente la seguridad ofensiva, los CTF,
+    el pentesting, la enumeración de sistemas y el análisis
+    de vulnerabilidades.
+  </p>
+
+</section>
+
+<section class="card">
+
+  <h2>Qué encontrarás aquí</h2>
+
+  <ul class="post-tags">
+    <li>Cybersecurity</li>
+    <li>Hacking</li>
+    <li>CTF</li>
+    <li>Pentesting</li>
+    <li>Linux</li>
+    <li>OSINT</li>
+  </ul>
+
+  <p>
+    La idea es aprender haciendo, documentar el proceso y volver
+    sobre él cuando sea necesario.
+  </p>
+
+</section>
+
+<section id="links" class="card">
+
+  <h2>Contactos</h2>
+
+  <p>
+    Puedes encontrarme en:
+  </p>
+
+  <ul class="links-row icons">
+
+    <li>
+      <a
+        href="https://github.com/Odiaz-cyber/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+      >
+        <img src="icons/github.png" alt="GitHub" />
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="mailto:zerberuz1@gmail.com"
+        aria-label="Email"
+      >
+        <img src="icons/email.png" alt="Email" />
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="https://discord.com/users/1323047606573596837"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Discord"
+      >
+        <img src="icons/discord.png" alt="Discord" />
+      </a>
+    </li>
+
+  </ul>
+
+</section>
+
+
+  </main>
 
   <footer class="site-footer">
-    <p>© 2025 zerberuz · hecho con él y café</p>
+    <p>© 2025 zerberuz · Is hard but not impossible</p>
   </footer>
+
 </body>
 </html>

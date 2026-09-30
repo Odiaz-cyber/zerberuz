@@ -1,92 +1,238 @@
-3<!DOCTYPE html>
+<!DOCTYPE html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel=icon href=icons/header.png type=image/png class="header-img">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="icons/header.png" type="image/png" />
+
   <title>Writeups | zerberuz</title>
-  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="styles-v2.css" />
 </head>
+
 <body>
+
   <div class="noise"></div>
   <div class="scanlines"></div>
 
   <header class="site-header">
     <div class="profile">
-      <img src="profile.webp" alt="Foto de perfil" class="avatar" />
-      <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
-    </div>
+      <img
+        src="profile.webp"
+        alt="Foto de perfil de zerberuz"
+        class="avatar"
+      />
 
-    <nav class="nav">
-      <a href="index.html">Inicio</a>
-      <a href="writeups.html">Writeups</a>
-      <a href="about.html">whoami</a>
-      <a href="zerovault.html">ZeroVault</a>
-    </nav>
+
+  <h1 class="glitch small" data-text="zerberuz">zerberuz</h1>
+</div>
+
+<nav class="nav" aria-label="Navegación principal">
+  <a href="index.html" data-text="Inicio">Inicio</a>
+
+  <a
+    href="writeups.html"
+    class="active"
+    data-text="Writeups"
+    aria-current="page"
+  >
+    Writeups
+  </a>
+
+  <a href="about.html" data-text="whoami">whoami</a>
+
+  <a href="zerovault.html" data-text="zerovault">ZeroVault</a>
+</nav>
+
+
   </header>
 
   <main class="container">
-    <!-- Buscador -->
-    <section class="search-box">
-      <input type="text" id="searchInput" placeholder="Buscar writeups..." />
-    </section>
 
-    <section id="writeups" class="card">
-      <h2>Writeups</h2>
-      <div id="posts">
-        <article class="post">
-          <h3><a href="writeups/moneybox.html">VulnHub: MoneyBox</a></h3>
-          <p>Enumera y encuentra el camino.</p>
-        </article>
-        <article class="post">
-          <h3><a href="writeups/cybersploit.html">VulnHub: Cybersploit</a></h3>
-          <p>Puede que sea de esa manera.</p>
-        </article>
-        <article class="post">
-          <h3><a href="writeups/kb-vuln3.html">VulnHub: KB-Vuln 3</a></h3>
-          <p>Puede que sea de esa manera.</p>
-        </article>
-        <article class="post">
-          <h3><a href="writeups/fowsniff.html">VulnHub: Fowsniff</a></h3>
-          <p>Si buscas bien, puede ser que lo veas.</p>
-        </article>
-      </div>
-      </div>
-    </section>
 
-    <!-- Enlaces -->
-    <section id="links" class="card">
-  <h2>Contactos</h2>
-  <ul class="links-row icons">
-    <li><a href="https://github.com/Odiaz-cyber/zer-beruz" aria-label="GitHub">
-      <img src="icons/github.png" alt="GitHub" />
-    </a></li>
-    <li><a href="https://x.com/TU-USER" aria-label="X">
-      <img src="icons/x.png" alt="X" />
-    </a></li>
-    <li><a href="zerberuz1@gmail.com" aria-label="Email">
-      <img src="icons/email.png" alt="Email" />
-    </a></li>
-    <li><a href="https://discord.com/users/1323047606573596837" target="_blank">
-      <img src="icons/discord.png" alt="Discord" />
-    </a></li>
-  </ul>
+<section class="hero">
+  <p class="eyebrow">knowledge · exploitation · ctf</p>
+
+  <h2>Writeups</h2>
+
+  <p>
+    Documentación de máquinas, retos y laboratorios de seguridad.
+    El objetivo es dejar registrado el proceso, las técnicas utilizadas
+    y lo aprendido durante cada recorrido.
+  </p>
 </section>
- 
+
+<section class="search-box" aria-label="Buscar writeups">
+  <input
+    type="search"
+    id="searchInput"
+    placeholder="Buscar writeups..."
+    aria-label="Buscar writeups"
+  />
+</section>
+
+<section id="writeups" class="card">
+
+  <h2>Máquinas y retos</h2>
+
+  <div id="posts">
+
+    <article class="post">
+      <div class="post-head">
+        <h3>
+          <a href="writeups/moneybox.html">VulnHub: MoneyBox</a>
+        </h3>
+
+        <span class="post-date">2025</span>
+      </div>
+
+      <p class="post-desc">
+        Enumeración, análisis de servicios, explotación y escalada
+        de privilegios en una máquina de laboratorio.
+      </p>
+
+      <ul class="post-tags">
+        <li>linux</li>
+        <li>enumeration</li>
+        <li>privilege-escalation</li>
+      </ul>
+    </article>
+
+    <article class="post">
+      <div class="post-head">
+        <h3>
+          <a href="writeups/cybersploit.html">VulnHub: Cybersploit</a>
+        </h3>
+
+        <span class="post-date">2025</span>
+      </div>
+
+      <p class="post-desc">
+        Reconocimiento, enumeración y explotación de una máquina
+        orientada al aprendizaje de técnicas de seguridad ofensiva.
+      </p>
+
+      <ul class="post-tags">
+        <li>linux</li>
+        <li>web</li>
+        <li>ctf</li>
+      </ul>
+    </article>
+
+    <article class="post">
+      <div class="post-head">
+        <h3>
+          <a href="writeups/kb-vuln3.html">VulnHub: KB-Vuln 3</a>
+        </h3>
+
+        <span class="post-date">2025</span>
+      </div>
+
+      <p class="post-desc">
+        Enumeración de servicios y análisis de las posibles vías
+        de acceso hasta conseguir avanzar en la máquina.
+      </p>
+
+      <ul class="post-tags">
+        <li>linux</li>
+        <li>enumeration</li>
+        <li>vulnhub</li>
+      </ul>
+    </article>
+
+    <article class="post">
+      <div class="post-head">
+        <h3>
+          <a href="writeups/fowsniff.html">VulnHub: Fowsniff</a>
+        </h3>
+
+        <span class="post-date">2025</span>
+      </div>
+
+      <p class="post-desc">
+        Reconocimiento, enumeración de servicios y búsqueda de
+        información que permite avanzar durante la explotación.
+      </p>
+
+      <ul class="post-tags">
+        <li>linux</li>
+        <li>enumeration</li>
+        <li>osint</li>
+      </ul>
+    </article>
+
+  </div>
+
+</section>
+
+<section id="links" class="card">
+
+  <h2>Contactos</h2>
+
+  <p>
+    Puedes encontrarme en:
+  </p>
+
+  <ul class="links-row icons">
+
+    <li>
+      <a
+        href="https://github.com/Odiaz-cyber/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub"
+      >
+        <img src="icons/github.png" alt="GitHub" />
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="mailto:zerberuz1@gmail.com"
+        aria-label="Email"
+      >
+        <img src="icons/email.png" alt="Email" />
+      </a>
+    </li>
+
+    <li>
+      <a
+        href="https://discord.com/users/1323047606573596837"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Discord"
+      >
+        <img src="icons/discord.png" alt="Discord" />
+      </a>
+    </li>
+
+  </ul>
+
+</section>
+
+
+  </main>
+
   <footer class="site-footer">
-    <p>© 2025 zerberuz · hecho con él y café</p>
+    <p>© 2025 zerberuz · Is hard but not impossible</p>
   </footer>
 
   <script>
-    const searchInput = document.getElementById('searchInput');
-    const posts = document.querySelectorAll('#posts .post');
-    searchInput.addEventListener('keyup', function() {
-      const term = this.value.toLowerCase();
-      posts.forEach(post => {
+    const searchInput = document.getElementById("searchInput");
+    const posts = document.querySelectorAll("#posts .post");
+
+    searchInput.addEventListener("input", function () {
+      const term = this.value.toLowerCase().trim();
+
+      posts.forEach((post) => {
         const text = post.innerText.toLowerCase();
-        post.style.display = text.includes(term) ? '' : 'none';
+
+        post.style.display = text.includes(term) ? "" : "none";
       });
     });
   </script>
+
 </body>
 </html>
